@@ -131,70 +131,59 @@ class GameLoop:
         return False
 
     def _handle_player_action(self, choice):
-        if choice == 'Q': 
-            AuditLogger.log("SISTEMA", "Sessão encerrada pelo usuário.")
-            StateManager.save_game(self.player.to_dict()); self.is_running = False
-        elif choice == 'E': 
-            received_emails = [e for e in self.all_emails if self._is_email_triggered(e)]
-            MenuController.display_inbox(received_emails, self.player)
-        elif choice == 'L': AuditLogger.display_logs()
-        elif choice == 'B': MenuController.open_black_market(self.player)
-        elif choice == 'S': MenuController.display_side_missions(self.mission_manager, AuditLogger)
-        elif choice == '...': MenuController.display_manual()
-        elif choice == '....': self._handle_player_action(AutoHacker.resolve_navigation(self.player, self.current_node, self.mission_manager))
-        elif choice == 'M' and self.current_node.is_root and not self.current_node.is_sniffing: self._deploy_mitm()
-        elif choice == 'D' and (self.current_node.data_files or self.current_node.ip in self.rival_stolen_files) and self.current_node.is_root: self._execute_data_download()
-        elif choice == 'P' and self.current_node.is_hacked and not self.current_node.is_root:
-            if run_privesc(self.player, self.current_node): ui_console.wait_for_enter()
-        else: self._process_navigation(choice)
+        """Despacha a ação com base no input do jogador."""
+        action_func = self.actions_map.get(choice)
+        if action_func:
+            action_func()
+        else:
+            self._process_navigation(choice)
 
-    def _display_side_missions(self):
-        ui_console.console.clear()
-        ui_console.header("QUADRO DE CONTRATOS", "SUBMUNDO")
-        
-        available = self.mission_manager.available_side_missions
-        if not available:
-            ui_console.info("Nenhum contrato disponível no momento.")
-            ui_console.wait_for_enter(); return
+    # --- Métodos de Ação (Commands) ---
 
-        for i, m in enumerate(available):
-            ui_console.console.print(f" [{i}] [bold cyan]{m['title']}[/]")
-            ui_console.console.print(f"     {m['description']}")
-            ui_console.console.print(f"     Recompensa: [bold gold1]${m['reward_credits']}[/]\n")
-        
-        sel = ui_console.ask("Aceitar contrato (Enter para voltar): ")
-        if sel.isdigit() and int(sel) < len(available):
-            mission = available[int(sel)]
-            if self.mission_manager.accept_side_mission(mission['id']):
-                ui_console.success(f"Contrato aceito: {mission['title']}")
-                AuditLogger.log("SISTEMA", f"Contrato secundário aceito: {mission['title']}")
-        ui_console.wait_for_enter()
+    def _action_quit(self):
+        AuditLogger.log("SISTEMA", "Sessão encerrada pelo usuário.")
+        StateManager.save_game(self.player.to_dict())
+        self.is_running = False
 
-    def _display_inbox(self):
-        ui_console.console.clear()
-        ui_console.header("INBOX - MENSAGENS CRIPTOGRAFADAS", "GHOST_MAIL_v2.1")
-        
+    def _action_inbox(self):
         received_emails = [e for e in self.all_emails if self._is_email_triggered(e)]
-        if not received_emails:
-            ui_console.system("Nenhuma mensagem nova."); ui_console.wait_for_enter(); return
+        MenuController.display_inbox(received_emails, self.player)
 
-        for e in reversed(received_emails): # Mais recentes primeiro
-            status = "[bold green][NOVA][/]" if e['id'] not in self.player.read_emails else "[dim][LIDA][/]"
-            ui_console.console.print(f"\n{status} [bold cyan]DE:[/] {e['from']}")
-            ui_console.console.print(f"[bold cyan]ASSUNTO:[/] {e['subject']}")
-            ui_console.console.print(f"\n{e['body']}")
-            
-            if e['id'] not in self.player.read_emails:
-                self.player.read_emails.append(e['id'])
-            print("-" * 40)
-            
-        ui_console.wait_for_enter()
+    def _action_logs(self):
+        AuditLogger.display_logs()
 
-    def _deploy_mitm(self):
-        mitm_s = next((s for s in self.player.scripts if s.id == "mitm"), None)
-        if self.player.use_ram(mitm_s.ram_cost):
-            self.current_node.is_sniffing = True; self.player.increase_trace(mitm_s.trace_impact)
-            ui_console.success("Sniffer instalado."); ui_console.wait_for_enter()
+    def _action_black_market(self):
+        MenuController.open_black_market(self.player)
+
+    def _action_side_missions(self):
+        MenuController.display_side_missions(self.mission_manager, AuditLogger)
+
+    def _action_manual(self):
+        MenuController.display_manual()
+
+    def _action_auto_hacker(self):
+        auto_choice = AutoHacker.resolve_navigation(self.player, self.current_node, self.mission_manager)
+        self._handle_player_action(auto_choice)
+
+    def _action_deploy_mitm(self):
+        if self.current_node.is_root and not self.current_node.is_sniffing:
+            mitm_s = next((s for s in self.player.scripts if s.id == "mitm"), None)
+            if self.player.use_ram(mitm_s.ram_cost):
+                self.current_node.is_sniffing = True
+                self.player.increase_trace(mitm_s.trace_impact)
+                ui_console.success("Sniffer instalado.")
+                ui_console.wait_for_enter()
+
+    def _action_download_data(self):
+        if (self.current_node.data_files or self.current_node.ip in self.rival_stolen_files) and self.current_node.is_root:
+            self._execute_data_download()
+
+    def _action_privesc(self):
+        if self.current_node.is_hacked and not self.current_node.is_root:
+            if run_privesc(self.player, self.current_node): 
+                ui_console.wait_for_enter()
+
+    # --- Fim dos Métodos de Ação ---
 
     def _process_navigation(self, choice):
         try:
