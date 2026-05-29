@@ -92,7 +92,7 @@ def _execute_script_logic(hacker, idx: int, target_node) -> int:
         if "Supplier" in target_node.node_type or "Partner" in target_node.node_type:
             console.success("Backdoor plantado na atualização de software do fornecedor.")
             target_node.is_supply_chain_infected = True; target_node.backdoor_timer = 4
-            return 100 # Derruba o servidor do fornecedor para plantar o código
+            return 100 
         console.error("Este script só funciona em alvos externos (Supplier/Partner)!"); return 0
 
     console.system(f"[*] Executando: {s.name}")
@@ -100,11 +100,63 @@ def _execute_script_logic(hacker, idx: int, target_node) -> int:
     return s.damage
 
 def _run_social_engineering_game(hacker: Player) -> int:
-    console.header("SOCIAL ENGINEERING", "MANIPULANDO USUÁRIO")
-    print("\n[1] Estagiário | [2] Admin Bravo | [3] Manutenção")
-    choice = console.ask("Resposta: ")
-    if choice == "1": console.success("Acesso total garantido."); return 100
-    hacker.increase_trace(20); return 0
+    scenarios = [
+        {
+            "persona": "Estagiário de TI (Nervoso)",
+            "context": "O estagiário atendeu o chat de suporte interno.",
+            "prompt": "Oi! Desculpa a demora. Eu não consigo achar o ticket de manutenção do seu servidor. Qual era o código mesmo?",
+            "options": [
+                {"text": "Diga que é urgente: 'Código 404-X. Se eu não logar agora, o CEO vai me matar!'", "success": True, "trace": 5},
+                {"text": "Seja técnico: 'A porta 8080 está em loop infinito, preciso de acesso root para o kill -9.'", "success": False, "trace": 30},
+                {"text": "Ameace: 'Você é novo? Me passa o acesso ou ligo pro seu supervisor agora!'", "success": True, "trace": 50}
+            ]
+        },
+        {
+            "persona": "Analista de RH (Ocupada)",
+            "context": "Você enviou um e-mail falso sobre 'Bônus de Performance'.",
+            "prompt": "Recebi seu e-mail, mas o link está pedindo minha credencial de admin. É seguro?",
+            "options": [
+                {"text": "Minta com calma: 'Sim, é a nova política de segurança Zero-Trust da empresa.'", "success": True, "trace": 10},
+                {"text": "Pressione: 'O prazo para o bônus acaba em 5 minutos. Você quem sabe.'", "success": True, "trace": 40},
+                {"text": "Ignore e envie outro link: 'Tente este portal alternativo de contingência.'", "success": False, "trace": 60}
+            ]
+        },
+        {
+            "persona": "Segurança de Plantão (Cético)",
+            "context": "Você ligou simulando ser da manutenção predial.",
+            "prompt": "Estranho... não recebi nenhum aviso de manutenção no andar 4 hoje.",
+            "options": [
+                {"text": "Use jargão de infra: 'Houve um vazamento no chiller principal. Se não isolarmos a sala de racks, vai fritar tudo.'", "success": True, "trace": 20},
+                {"text": "Fingir erro: 'Ah, desculpe, deve ser no andar 5 então. Pode conferir pra mim?'", "success": False, "trace": 15},
+                {"text": "Confusão burocrática: 'Verifique a Ordem de Serviço #8829-B no sistema legado.'", "success": True, "trace": 5}
+            ]
+        }
+    ]
+
+    scenario = random.choice(scenarios)
+    console.header("SOCIAL ENGINEERING", scenario["persona"])
+    console.info(scenario["context"])
+    print(f"\n[FALA]: \"{scenario['prompt']}\"")
+    
+    for i, opt in enumerate(scenario["options"]):
+        print(f" [{i}] {opt['text']}")
+    
+    choice = console.ask("Sua escolha: ")
+    try:
+        opt = scenario["options"][int(choice)]
+        if opt["success"]:
+            console.success("O alvo caiu na armadilha! Acesso garantido.")
+            hacker.increase_trace(opt["trace"])
+            return 100
+        else:
+            console.error("O alvo desconfiou e bloqueou a tentativa.")
+            hacker.increase_trace(opt["trace"])
+            hacker.take_damage(20)
+            return 0
+    except:
+        console.warning("Hesitação detectada. O alvo encerrou o chat.")
+        hacker.increase_trace(10)
+        return 0
 
 def _perform_system_reboot(hacker: Player):
     hacker.restore_system_resources(); hacker.increase_trace(20); console.success("RAM restaurada.")
