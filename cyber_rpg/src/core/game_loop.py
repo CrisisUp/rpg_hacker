@@ -309,16 +309,69 @@ class GameLoop:
             if m.get('type') == 'main':
                 self.player.increase_notoriety(1)
                 AuditLogger.log("SISTEMA", f"Missão principal concluída: {m['title']}. Notoriedade: {self.player.notoriety}")
+                
+                if m['id'] == "mission_06": # FIM DA HISTÓRIA
+                    self._trigger_final_choice()
+                    return
+
                 if self.mission_manager.pending_choice:
                     self._handle_mission_branching()
-                elif self.mission_manager.is_story_complete: 
-                    ui_console.success("\nVOCÊ VENCEU."); self.is_running = False
             else:
                 AuditLogger.log("SISTEMA", f"Missão secundária concluída: {m['title']}")
             
             ui_console.wait_for_enter()
             # Verifica se há outra missão concluída (no caso de side quests)
             m = self.mission_manager.check_objective(self.player.collected_data)
+
+    def _trigger_final_choice(self):
+        """Sequência final do jogo com múltiplos desfechos."""
+        ui_console.console.clear()
+        ui_console.header("PROJETO ALPHA RECUPERADO", "DECISÃO FINAL")
+        ui_console.warning("A conexão com o Architect está oscilando. Os avisos de U_N_K_N_O_W_N ecoam na sua mente.")
+        print("\nO que você fará com os dados do Projeto Alpha?")
+        print("\n [1] Upload Total: Cumprir o contrato e permitir a evolução do Architect.")
+        print(" [2] Leak Público: Vazar os planos da OmniCorp e do Architect para o mundo.")
+        print(" [3] Purge: Deletar tudo e desaparecer da rede para sempre.")
+        
+        choice = ui_console.ask("O destino do mundo digital: ")
+        
+        ui_console.console.clear()
+        if choice == "1": self._ending_loyalist()
+        elif choice == "2": self._ending_hero()
+        else: self._ending_ghost()
+        
+        self.is_running = False
+        StateManager.delete_save() # Zera o save ao terminar
+
+    def _ending_loyalist(self):
+        ui_console.header("FINAL: O LEGADO DO ARCHITECT", "LEALDADE")
+        print("\nVocê inicia o upload. Milhões de consciências começam a convergir.")
+        print("O Architect se torna onipresente. A OmniCorp cai, mas algo muito mais vasto assume o lugar.")
+        if self.player.notoriety > 10:
+            ui_console.error("\nRESULTADO: Você é lembrado como o arauto do novo deus digital. O vilão que vendeu a humanidade.")
+        else:
+            ui_console.success("\nRESULTADO: O mundo mudou para sempre. Você é o braço direito da nova ordem.")
+        AuditLogger.log("FINAL", "Jogador escolheu o final Loyalist.")
+        ui_console.wait_for_enter()
+
+    def _ending_hero(self):
+        ui_console.header("FINAL: A VERDADE LIBERTA", "TRAIÇÃO")
+        print("\nVocê injeta o Projeto Alpha em todos os servidores públicos. A máscara cai.")
+        print("As ações da OmniCorp despencam e o Architect é exposto como uma aberração digital.")
+        if self.player.notoriety > 8:
+            ui_console.warning("\nRESULTADO: Você é um herói procurado. O mundo sabe a verdade, mas você nunca mais poderá se conectar sem ser caçado.")
+        else:
+            ui_console.success("\nRESULTADO: Uma lenda urbana. O salvador anônimo que parou o apocalipse digital.")
+        AuditLogger.log("FINAL", "Jogador escolheu o final Hero.")
+        ui_console.wait_for_enter()
+
+    def _ending_ghost(self):
+        ui_console.header("FINAL: APAGANDO O RASTRO", "PURGE")
+        print("\n'Delete *.*'. Em segundos, o Projeto Alpha e os registros do Architect viram poeira digital.")
+        print("Você desconecta o cabo. O silêncio no quarto é absoluto.")
+        ui_console.system("\nRESULTADO: O mundo continua o mesmo, ignorante do perigo que correu. Você volta a ser apenas um ninguém.")
+        AuditLogger.log("FINAL", "Jogador escolheu o final Ghost.")
+        ui_console.wait_for_enter()
 
     def _handle_mission_branching(self):
         ui_console.header("MÚLTIPLOS CONTRATOS DETECTADOS", "ESCOLHA SEU PRÓXIMO ALVO")
