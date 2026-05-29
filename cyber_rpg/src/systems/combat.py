@@ -13,13 +13,17 @@ def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
     CombatUI.display_header(target_server.ip)
     AuditLogger.log("COMBATE", f"Iniciando tentativa de invasão em {target_server.ip} ({target_server.node_type})")
     
-    # Cálculo de dificuldade dinâmica baseado no Nível de Alerta Corporativo
+    # Cálculo de dificuldade dinâmica baseado no Nível de Alerta Corporativo e Notoriedade
     base_health = 40 if "Firewall" in target_server.node_type else 25
     alert_bonus = hacker.alert_level * 5 # Cada ponto de alerta adiciona 5 HP
-    server_health = base_health + alert_bonus
+    notoriety_bonus = hacker.notoriety * 2 # Cada ponto de notoriedade adiciona 2 HP permanente
+    server_health = base_health + alert_bonus + notoriety_bonus
     
-    if hacker.alert_level > 0:
-        console.warning(f"DEFESAS ATIVAS! Nível de alerta {hacker.alert_level} detectado. (+{alert_bonus} HP)")
+    if hacker.alert_level > 0 or hacker.notoriety > 0:
+        msg = f"DEFESAS ATIVAS!"
+        if hacker.alert_level > 0: msg += f" Nível de alerta {hacker.alert_level}."
+        if hacker.notoriety > 0: msg += f" Notoriedade detectada: {hacker.notoriety}."
+        console.warning(f"{msg} (+{alert_bonus + notoriety_bonus} HP)")
     
     while server_health > 0 and hacker.connection_stability > 0:
         CombatUI.display_status(hacker, server_health)

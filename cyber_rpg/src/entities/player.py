@@ -12,7 +12,8 @@ class Player:
         self.exp = 0
         self.credits = 0
         self.vulnerability_fragments = 0
-        self.alert_level = 0 # Novo: Nível de alerta global corporativo
+        self.alert_level = 0 # Nível de alerta global corporativo
+        self.notoriety = 0 # Novo: Fama do hacker (causa consequências persistentes)
         self.scripts: list[HackingScript] = []
         self.collected_data = []
         self.read_emails = []
@@ -25,6 +26,7 @@ class Player:
             "credits": self.credits,
             "vulnerability_fragments": self.vulnerability_fragments,
             "alert_level": self.alert_level,
+            "notoriety": self.notoriety,
             "script_ids": [s.id for s in self.scripts],
             "collected_data": self.collected_data,
             "read_emails": self.read_emails
@@ -37,6 +39,7 @@ class Player:
         self.credits = data.get("credits", self.credits)
         self.vulnerability_fragments = data.get("vulnerability_fragments", 0)
         self.alert_level = data.get("alert_level", 0)
+        self.notoriety = data.get("notoriety", 0)
         self.collected_data = data.get("collected_data", [])
         self.read_emails = data.get("read_emails", [])
         script_ids = data.get("script_ids", [])
@@ -78,5 +81,8 @@ class Player:
     def increase_alert(self, amount: int):
         self.alert_level += amount
 
+    def increase_notoriety(self, amount: int):
+        self.notoriety += amount
+
     def __repr__(self):
-        return f"[Hacker: {self.handle} | RAM: {self.current_ram}GB | Trace: {self.trace_level}% | Alerta: {self.alert_level}]"
+        return f"[Hacker: {self.handle} | RAM: {self.current_ram}GB | Trace: {self.trace_level}% | Alerta: {self.alert_level} | Notoriedade: {self.notoriety}]"

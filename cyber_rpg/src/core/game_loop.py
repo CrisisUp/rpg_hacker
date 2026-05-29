@@ -70,9 +70,26 @@ class GameLoop:
             self.passive_manager.process_all(self.all_network_nodes)
             self._check_mission_status()
             if not self.is_running: break
+            self._check_for_hunter_attack()
+            if self.player.connection_stability <= 0: self._trigger_game_over(); break
+            
             self._display_node_status()
             choice = ui_console.ask("Ação: ").upper()
             self._handle_player_action(choice)
+
+    def _check_for_hunter_attack(self):
+        """Chance de uma IA inimiga (Hunter) atacar o jogador baseado na Notoriedade."""
+        if self.player.notoriety <= 0: return
+        
+        # Chance de 5% por ponto de notoriedade, máx 30%
+        chance = min(30, self.player.notoriety * 5)
+        if random.randint(1, 100) <= chance:
+            ui_console.error("ALERTA: HUNTER DETECTADO NA REDE!")
+            dmg = random.randint(10, 25)
+            self.player.take_damage(dmg)
+            ui_console.warning(f"Uma IA de contra-inteligência corporativa atacou sua conexão! (-{dmg}% Estabilidade)")
+            AuditLogger.log("HUNTER", f"Ataque de Hunter detectado. Dano: {dmg}%")
+            ui_console.wait_for_enter()
 
     def _display_interface(self):
         ui_console.console.clear()
@@ -198,6 +215,9 @@ class GameLoop:
         if m:
             ui_console.header("MISSÃO CONCLUÍDA", "OBJETIVO ALCANÇADO")
             self.player.add_credits(m['reward_credits'])
+            self.player.increase_notoriety(1) # Ganha 1 de notoriedade por missão concluída
+            AuditLogger.log("SISTEMA", f"Missão concluída. Notoriedade aumentou para {self.player.notoriety}.")
+            
             if self.mission_manager.pending_choice:
                 self._handle_mission_branching()
             elif self.mission_manager.is_story_complete: 
@@ -208,8 +228,8 @@ class GameLoop:
         ui_console.header("MÚLTIPLOS CONTRATOS DETECTADOS", "ESCOLHA SEU PRÓXIMO ALVO")
         choices = self.mission_manager.get_available_choices()
         for i, c in enumerate(choices):
-            ui_console.console.print(f" [{i}] [bold cyan]{c['title']}[/]")
-            ui_console.console.print(f"     {c['description']}\n")
+            ui_console.print(f" [{i}] [bold cyan]{c['title']}[/]")
+            ui_console.print(f"     {c['description']}\n")
         
         sel = ui_console.ask("Selecione o contrato: ")
         try:
@@ -220,7 +240,8 @@ class GameLoop:
             if "loud" in chosen['id']:
                 self.player.increase_trace(30)
                 self.player.increase_alert(1)
-                ui_console.warning("Ação barulhenta! TI em alerta máximo (+30% Trace, +1 Nível de Alerta).")
+                self.player.increase_notoriety(2) # Missões barulhentas dão mais notoriedade
+                ui_console.warning("Ação barulhenta! TI em alerta máximo (+30% Trace, +1 Nível de Alerta, +2 Notoriedade).")
         except:
             self.mission_manager.select_mission(choices[0]['id']) # Fallback
             ui_console.warning("Contrato padrão selecionado devido a erro de entrada.")
