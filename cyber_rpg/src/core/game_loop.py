@@ -4,6 +4,7 @@ from entities.network import NetworkNode
 from systems.generator import generate_network
 from systems.combat import start_hack, run_privesc
 from ui import console as ui_console
+from ui.market import BlackMarket
 from systems.loader import get_all_scripts, get_lore_data, get_all_emails
 from systems.missions import MissionManager
 from systems.auto_hacker import AutoHacker
@@ -109,7 +110,7 @@ class GameLoop:
         for i, n in enumerate(self.current_node.connections):
             status = "[ROOT]" if n.is_root else "[USER]" if n.is_hacked else "[LOCKED]"
             ui_console.console.print(f" [{i}] -> {n.ip} ({n.node_type}) {status}")
-        print("\n [E] Inbox | [L] Logs | [Q] Sair | [...] Ajuda")
+        print("\n [E] Inbox | [L] Logs | [B] Dark Web | [Q] Sair | [...] Ajuda")
 
     def _handle_player_action(self, choice):
         if choice == 'Q': 
@@ -117,6 +118,7 @@ class GameLoop:
             StateManager.save_game(self.player.to_dict()); self.is_running = False
         elif choice == 'E': self._display_inbox()
         elif choice == 'L': AuditLogger.display_logs()
+        elif choice == 'B': BlackMarket.display_market(self.player)
         elif choice == '...': ui_console.display_manual()
         elif choice == '....': self._handle_player_action(AutoHacker.resolve_navigation(self.player, self.current_node, self.mission_manager))
         elif choice == 'M' and self.current_node.is_root and not self.current_node.is_sniffing: self._deploy_mitm()
