@@ -33,6 +33,9 @@ def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
     return _finalize_hack_session(target_server, server_health)
 
 def run_privesc(hacker: Player, target_server: NetworkNode) -> bool:
+    if target_server.is_corrupted:
+        console.error("Sistemas de autenticação destruídos. Impossível escalar privilégios em um nó morto.")
+        return False
     console.header("PRIVILEGE ESCALATION", "SCANNING FOR KERNEL EXPLOITS")
     time.sleep(1.5)
     addresses = ["0x" + "".join(random.choices("ABCDEF123456789", k=6)) for _ in range(3)]
@@ -41,11 +44,8 @@ def run_privesc(hacker: Player, target_server: NetworkNode) -> bool:
     for i, addr in enumerate(addresses): print(f" [{i}] {addr}")
     choice = console.ask("Endereço (terminado em 0): ")
     if choice == str(vuln_idx):
-        console.success("Acesso ROOT garantido.")
-        target_server.is_root = True
-        return True
-    hacker.increase_trace(25)
-    return False
+        console.success("Acesso ROOT garantido."); target_server.is_root = True; return True
+    hacker.increase_trace(25); return False
 
 def _display_combat_status(hacker, server_health):
     print(f"\n[ALVO]: {server_health} HP | [CONEXÃO]: {hacker.connection_stability}% | [RAM]: {hacker.current_ram}GB")
@@ -76,12 +76,18 @@ def _execute_script_logic(hacker, idx: int, target_node) -> int:
     
     if s.id == "xss":
         if "Web Server" in target_node.node_type:
-            console.success("Payload XSS injetado com sucesso no servidor de páginas.")
-            target_node.is_xss_active = True
-            return 100 # Derruba o servidor para facilitar a entrada
-        else:
-            console.error("Este payload só funciona em servidores do tipo 'Web Server'!")
-            return 0
+            console.success("Payload XSS injetado."); target_node.is_xss_active = True; return 100
+        console.error("Apenas para Web Servers!"); return 0
+
+    if s.id == "overflow":
+        console.warning("!!! EXECUTANDO OVERFLOW DE MEMÓRIA !!!")
+        console.system("[*] Injetando pacotes de tamanho inválido...")
+        time.sleep(1)
+        console.error("[CRITICAL] Segmentação de memória corrompida. O servidor está morrendo.")
+        target_node.is_corrupted = True
+        target_node.data_files = [] # Destrói os arquivos
+        hacker.increase_trace(s.trace_impact)
+        return 100
 
     console.system(f"[*] Executando: {s.name}")
     hacker.increase_trace(s.trace_impact)

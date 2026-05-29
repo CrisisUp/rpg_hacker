@@ -51,7 +51,16 @@
     "damage": 0,
     "trace_impact": 5,
     "price": 450,
-    "description": "Infecta um Web Server para capturar conexões de funcionários e descobrir suas Workstations."
+    "description": "Infecta um Web Server para capturar conexões de funcionários."
+  },
+  {
+    "id": "overflow",
+    "name": "Buffer_Overflow.c",
+    "ram_cost": 8,
+    "damage": 100,
+    "trace_impact": 30,
+    "price": 500,
+    "description": "Exploit de baixo nível que derruba o nó instantaneamente, mas corrompe todos os dados locais."
   },
   {
     "id": "zeroday",
@@ -60,6 +69,6 @@
     "damage": 999,
     "trace_impact": 0,
     "price": 10000,
-    "description": "O Santo Graal. Destrói qualquer defesa instantaneamente sem deixar rastros."
+    "description": "O Santo Graal. Destrói qualquer defesa sem deixar rastros."
   }
 ]

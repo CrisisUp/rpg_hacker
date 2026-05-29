@@ -5,7 +5,8 @@ class NetworkNode:
         self.is_hacked = False
         self.is_root = False
         self.is_sniffing = False
-        self.is_xss_active = False # Novo: Define se o servidor web está distribuindo payloads XSS
+        self.is_xss_active = False
+        self.is_corrupted = False # Novo: Define se o servidor foi destruído por um overflow
         self.connections = []
         self.data_files = []
 
@@ -15,5 +16,6 @@ class NetworkNode:
             other_node.connections.append(self)
 
     def __repr__(self):
+        if self.is_corrupted: return f"<Node {self.ip} [DEAD]>"
         status = "XSS" if self.is_xss_active else "MITM" if self.is_sniffing else "ROOT" if self.is_root else "USER" if self.is_hacked else "LOCKED"
         return f"<Node {self.ip} [{status}]>"
