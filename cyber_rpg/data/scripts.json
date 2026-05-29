@@ -88,5 +88,14 @@
     "trace_impact": 0,
     "price": 10000,
     "description": "O Santo Graal. Destrói qualquer defesa sem deixar rastros."
+  },
+  {
+    "id": "ransomware",
+    "name": "Ransom_X.py",
+    "ram_cost": 6,
+    "damage": 0,
+    "trace_impact": 20,
+    "price": 800,
+    "description": "Criptografa o servidor para extorsão. Gera créditos altos após 5 turnos, mas aumenta o rastreio drasticamente."
   }
 ]

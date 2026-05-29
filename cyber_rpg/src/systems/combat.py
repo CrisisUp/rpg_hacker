@@ -101,6 +101,23 @@ def _execute_script_logic(hacker, idx: int, target_node) -> int:
             return 100 
         console.error("Este script só funciona em alvos externos (Supplier/Partner)!"); return 0
 
+    if s.id == "ransomware":
+        if target_node.is_under_ransomware: console.error("Servidor já infectado."); return 0
+        console.header("INICIANDO CRIPTOGRAFIA", "EXTORSÃO EM CURSO")
+        console.info("Escolha sua estratégia de extorsão:")
+        print(" [1] Extorsão Padrão: Resgate seguro após 5 turnos.")
+        print(" [2] Extorsão Dupla: Vazar dados agora (+Créditos), mas dobra o Rastreio.")
+        sub_choice = console.ask("Escolha: ")
+        
+        target_node.ransomware_timer = 5
+        if sub_choice == "2":
+            gain = random.randint(500, 1000)
+            console.warning(f"DADOS VAZADOS! +${gain} imediatos. Equipe de resposta em alerta máximo.")
+            hacker.add_credits(gain); hacker.increase_trace(40)
+        
+        hacker.increase_trace(s.trace_impact)
+        return 100 # Derruba o servidor para iniciar o timer
+
     console.system(f"[*] Executando: {s.name}")
     hacker.increase_trace(s.trace_impact)
     return s.damage

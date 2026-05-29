@@ -49,7 +49,8 @@ class GameLoop:
         self.player = Player(handle)
         all_s = get_all_scripts()
         if all_s: 
-            self.player.scripts = [s for s in all_s if s.id in ['brute_force', 'proxy_hop', 'mitm', 'phishing', 'xss', 'decrypter', 'supplychain']]
+            # Adicionado 'ransomware' aos scripts iniciais para teste
+            self.player.scripts = [s for s in all_s if s.id in ['brute_force', 'proxy_hop', 'mitm', 'phishing', 'xss', 'decrypter', 'supplychain', 'ransomware']]
 
     def run_main_loop(self):
         while self.is_running:
@@ -77,14 +78,21 @@ class GameLoop:
                 ws.data_files = ["personal_secrets.txt"]; node.connect(ws); self.all_network_nodes.append(ws)
                 ui_console.warning(f"\n[XSS] Workstation detectada: {ws.ip}")
 
-        # 3. Processar Ransomware
-        if random.random() < 0.05:
-            target = random.choice([n for n in self.all_network_nodes if n.is_hacked and not n.is_under_ransomware and not n.is_corrupted])
-            if target: target.ransomware_timer = 5; ui_console.error(f"\n[ALERTA] RANSOMWARE EM {target.ip}!")
+        # 3. Processar Ransomware (Agressivo)
         for node in self.all_network_nodes:
             if node.is_under_ransomware:
                 node.ransomware_timer -= 1
-                if node.ransomware_timer <= 0: node.is_corrupted = True; node.data_files = []; ui_console.error(f"\n[CRÍTICO] Servidor {node.ip} perdido para Ransomware.")
+                # Aumento drástico de rastreio enquanto o ransomware está ativo
+                self.player.increase_trace(10)
+                ui_console.warning(f"[RANSOMWARE] Criptografando {node.ip}... TI em alerta! (+10% Trace)")
+                
+                if node.ransomware_timer <= 0:
+                    node.is_corrupted = True
+                    node.data_files = []
+                    resgate = random.randint(2000, 5000)
+                    self.player.add_credits(resgate)
+                    ui_console.header("RESGATE RECEBIDO", f"+${resgate}")
+                    ui_console.success(f"O servidor {node.ip} foi totalmente criptografado. Pagamento processado via Monero.")
 
         # 4. Processar Supply Chain Backdoor
         for node in [n for n in self.all_network_nodes if n.has_active_backdoor]:
@@ -177,6 +185,10 @@ class GameLoop:
             ui_console.success("Exploit Zero-Day pronto para uso único.")
 
     def _check_mission_status(self):
+        if self.player.connection_stability <= 0:
+            self._trigger_game_over()
+            return
+
         m = self.mission_manager.check_objective(self.player.collected_data)
         if m:
             ui_console.header("MISSÃO CONCLUÍDA", "OBJETIVO ALCANÇADO")
@@ -185,4 +197,4 @@ class GameLoop:
             ui_console.wait_for_enter()
 
     def _trigger_game_over(self):
-        ui_console.console.clear(); ui_console.error("DESCONECTADO"); StateManager.delete_save(); self.is_running = False; sys.exit()
+        ui_console.console.clear(); ui_console.error("CONEXÃO PERDIDA / RASTREIO COMPLETO"); StateManager.delete_save(); self.is_running = False; sys.exit()
