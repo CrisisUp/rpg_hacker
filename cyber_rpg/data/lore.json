@@ -1,9 +1,11 @@
 {
-  "access_logs.txt": "LOG DE ACESSO - GATEWAY 01\nCUIDADO: Tentativas de brute-force detectadas vindas de IP externo.\nAdmin: 'Provavelmente apenas mais um script-kiddie. Aumentem o timeout do firewall.'",
-  "lista_contatos.db": "E-MAIL INTERNO - RH\nPara: Todos os Funcionários\nAssunto: Alerta de Phishing\n'Pessoal, um estagiário do andar 4 caiu em um golpe de chat ontem. NÃO passem suas credenciais para ninguém, nem se disserem que é da manutenção!'",
-  "contas_offshore.enc": "NOTA CRIPTOGRAFADA - DIRETORIA\n'Os fundos foram movidos para a conta nas Ilhas Cayman. Se os auditores perguntarem, digam que foi investimento em P&D para o Projeto Alpha.'",
-  "token_acesso_admin.key": "LOG DE SISTEMA - SEGURANÇA\n'Detectamos uma atualização de software suspeita vinda do nosso fornecedor parceiro. O sistema parece estável, mas o checksum não bate. Investigar amanhã.'",
-  "project_alpha.pdf": "PROJETO ALPHA - CONFIDENCIAL\nObjetivo: Controle total das comunicações globais via backdoors em hardware.\nStatus: 95% concluído. Só falta a ativação final no Mainframe Central.",
-  "email_estagiario.txt": "E-MAIL - Estagiário de TI\n'Cara, eu juro que o cara da manutenção parecia real no chat! Agora meu acesso foi bloqueado e o chefe tá uma fera. Acho que vou ser demitido.'",
-  "aviso_ti.txt": "AVISO URGENTE - EQUIPE DE INFRA\n'QUEM INSTALOU RANSOMWARE NO SERVIDOR FINANCEIRO?! Estamos perdendo 10% da rede a cada minuto por causa do rastreio lento. DESLIGUEM TUDO!'"
+  "access_logs.txt": "LOG DE ACESSO - GATEWAY 01\nCUIDADO: Tentativas de brute-force detectadas vindas de IP externo.\nAdmin: 'Provavelmente apenas mais um script-kiddie. Aumentem o timeout do firewall.'\nNOTA: A senha temporária do servidor de Email foi resetada para 'OmniSafe2026'.",
+  "lista_contatos.db": "E-MAIL INTERNO - RH\nPara: Todos os Funcionários\nAssunto: Alerta de Phishing\n'Pessoal, um estagiário do andar 4 caiu em um golpe de chat ontem. NÃO passem suas credenciais para ninguém, nem se disserem que é da manutenção!'\nINFO: O RH agora utiliza o IP 10.0.1.254 para backups secretos.",
+  "contas_offshore.enc": "NOTA CRIPTOGRAFADA - DIRETORIA\n'Os fundos foram movidos para a conta nas Ilhas Cayman. Se os auditores perguntarem, digam que foi investimento em P&D para o Projeto Alpha.'\nDICA: O checksum do Cofre Criptografado termina em '...DEADBEEF'.",
+  "token_acesso_admin.key": "LOG DE SISTEMA - SEGURANÇA\n'Detectamos uma atualização de software suspeita vinda do nosso fornecedor parceiro. O sistema parece estável, mas o checksum não bate. Investigar amanhã.'\nADMIN_NOTE: Para o PrivEsc no Mainframe, o endereço vulnerável é sempre o '0x...0'.",
+  "project_alpha.pdf": "PROJETO ALPHA - CONFIDENCIAL\nObjetivo: Controle total das comunicações globais via backdoors em hardware.\nStatus: 95% concluído. Só falta a ativação final no Mainframe Central.\nCODE_NAME: 'Ghost in the Shell'.",
+  "email_estagiario.txt": "E-MAIL - Estagiário de TI\n'Cara, eu juro que o cara da manutenção parecia real no chat! Agora meu acesso foi bloqueado e o chefe tá uma fera. Acho que vou ser demitido.'\nPS: Ele até sabia que a porta do servidor de arquivos era a 443.",
+  "aviso_ti.txt": "AVISO URGENTE - EQUIPE DE INFRA\n'QUEM INSTALOU RANSOMWARE NO SERVIDOR FINANCEIRO?! Estamos perdendo 10% da rede a cada minuto por causa do rastreio lento. DESLIGUEM TUDO!'\nFIX: Use o Decrypter v2.0 para reverter a infecção no IP 10.0.1.15.",
+  "passwords.txt": "NOTAS DE SENHAS (NÃO DELETAR)\n- Email: OmniSafe2026\n- Database: Admin@DB123\n- Proxy: NoTraceRequired",
+  "config.old": "CONFIGURAÇÃO ANTIGA - GATEWAY\nfirewall_level=2\nsecret_node_ip=10.0.1.254\ndisable_ice=false"
 }

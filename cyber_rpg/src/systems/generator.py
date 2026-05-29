@@ -20,8 +20,13 @@ def generate_network(nodes_count=18):
     ]
     
     # Arquivos de Lore (História) que não são obrigatórios
-    lore_files = ["email_estagiario.txt", "aviso_ti.txt"]
-    common_files = ["passwords.txt", "config.old", "backup.zip", "key.pem"]
+    lore_files = ["email_estagiario.txt", "aviso_ti.txt", "passwords.txt", "config.old"]
+    common_files = ["backup.zip", "key.pem", "notes.txt"]
+
+    # Criação do nó secreto mencionado nos logs
+    secret_vault = NetworkNode("10.0.1.254", "Secret Vault")
+    secret_vault.data_files.append("ZeroDay_Exploit.zip")
+    secret_vault.data_files.append("omnicorp_secrets.db")
 
     for i in range(1, nodes_count):
         ip = f"10.0.1.{i+1}"
@@ -56,7 +61,7 @@ def generate_network(nodes_count=18):
                 new_node.data_files.append(mission_files.pop(0))
 
         # Colocação de arquivos de lore
-        if lore_files and random.random() < 0.3:
+        if lore_files and random.random() < 0.4:
             new_node.data_files.append(lore_files.pop(random.randint(0, len(lore_files)-1)))
 
         # Fragmentos de Zero-Day e Exploits
@@ -74,6 +79,12 @@ def generate_network(nodes_count=18):
         target_node = random.choice(all_nodes)
         new_node.connect(target_node)
         all_nodes.append(new_node)
+
+    # Conectar o cofre secreto a um nó aleatório seguro
+    secure_nodes = [n for n in all_nodes if n.node_type in secure_types]
+    if secure_nodes:
+        random.choice(secure_nodes).connect(secret_vault)
+        all_nodes.append(secret_vault)
         
     suppliers = [n for n in all_nodes if "Supplier" in n.node_type]
     omnicorp_nodes = [n for n in all_nodes if "Supplier" not in n.node_type and n != gateway]
