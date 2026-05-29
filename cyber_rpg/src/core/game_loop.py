@@ -26,6 +26,20 @@ class GameLoop:
         self.all_emails = get_all_emails()
         self.rival_stolen_files = {} # {ip: [files]}
         AuditLogger.log("SISTEMA", "GameLoop inicializado.")
+        
+        # Padrão Dispatch para as ações do jogador
+        self.actions_map = {
+            'Q': self._action_quit,
+            'E': self._action_inbox,
+            'L': self._action_logs,
+            'B': self._action_black_market,
+            'S': self._action_side_missions,
+            '...': self._action_manual,
+            '....': self._action_auto_hacker,
+            'M': self._action_deploy_mitm,
+            'D': self._action_download_data,
+            'P': self._action_privesc
+        }
 
     def start(self):
         ui_console.console.clear()
