@@ -8,7 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src'
 
 from entities.player import Player
 from entities.network import NetworkNode
-from systems.combat import _run_social_engineering_game
+from systems.script_effects import _run_social_engineering_game
 
 class TestPhishing(unittest.TestCase):
     def setUp(self):

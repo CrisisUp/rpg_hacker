@@ -5,6 +5,7 @@ from entities.player import Player
 from entities.network import NetworkNode
 from entities.script import HackingScript
 from systems.auto_hacker import AutoHacker
+from systems.script_effects import get_effect
 
 def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
     console.header(f"INICIANDO INVASÃO: {target_server.ip}")
@@ -69,116 +70,19 @@ def _process_script_menu(hacker, target_node) -> int:
     except: return 0
 
 def _execute_script_logic(hacker, idx: int, target_node) -> int:
-    s = hacker.scripts[idx]
-    
-    if s.id == "zeroday":
-        console.header("ZERO-DAY EXPLOIT ATIVADO", "EXECUTANDO VULNERABILIDADE DESCONHECIDA")
-        hacker.remove_script("zeroday")
-        return 999
-
-    if not hacker.use_ram(s.ram_cost): console.error("RAM insuficiente!"); return 0
-    
-    if s.id == "phishing": return _run_social_engineering_game(hacker)
-    if s.id == "xss":
-        if "Web Server" in target_node.node_type:
-            console.success("Payload XSS injetado."); target_node.is_xss_active = True; return 100
-        console.error("Apenas para Web Servers!"); return 0
-
-    if s.id == "overflow":
-        console.warning("!!! EXECUTANDO OVERFLOW !!!")
-        target_node.is_corrupted = True; target_node.data_files = []
-        hacker.increase_trace(s.trace_impact); return 100
-
-    if s.id == "decrypter":
-        if target_node.is_under_ransomware:
-            console.success("Ransomware neutralizado!"); target_node.ransomware_timer = 0; return 0
-        console.error("Servidor não infectado."); return 0
-
-    if s.id == "supplychain":
-        if "Supplier" in target_node.node_type or "Partner" in target_node.node_type:
-            console.success("Backdoor plantado na atualização de software do fornecedor.")
-            target_node.is_supply_chain_infected = True; target_node.backdoor_timer = 4
-            return 100 
-        console.error("Este script só funciona em alvos externos (Supplier/Partner)!"); return 0
-
-    if s.id == "ransomware":
-        if target_node.is_under_ransomware: console.error("Servidor já infectado."); return 0
-        console.header("INICIANDO CRIPTOGRAFIA", "EXTORSÃO EM CURSO")
-        console.info("Escolha sua estratégia de extorsão:")
-        print(" [1] Extorsão Padrão: Resgate seguro após 5 turnos.")
-        print(" [2] Extorsão Dupla: Vazar dados agora (+Créditos), mas dobra o Rastreio.")
-        sub_choice = console.ask("Escolha: ")
-        
-        target_node.ransomware_timer = 5
-        if sub_choice == "2":
-            gain = random.randint(500, 1000)
-            console.warning(f"DADOS VAZADOS! +${gain} imediatos. Equipe de resposta em alerta máximo.")
-            hacker.add_credits(gain); hacker.increase_trace(40)
-        
-        hacker.increase_trace(s.trace_impact)
-        return 100 # Derruba o servidor para iniciar o timer
-
-    console.system(f"[*] Executando: {s.name}")
-    hacker.increase_trace(s.trace_impact)
-    return s.damage
-
-def _run_social_engineering_game(hacker: Player) -> int:
-    scenarios = [
-        {
-            "persona": "Estagiário de TI (Nervoso)",
-            "context": "O estagiário atendeu o chat de suporte interno.",
-            "prompt": "Oi! Desculpa a demora. Eu não consigo achar o ticket de manutenção do seu servidor. Qual era o código mesmo?",
-            "options": [
-                {"text": "Diga que é urgente: 'Código 404-X. Se eu não logar agora, o CEO vai me matar!'", "success": True, "trace": 5},
-                {"text": "Seja técnico: 'A porta 8080 está em loop infinito, preciso de acesso root para o kill -9.'", "success": False, "trace": 30},
-                {"text": "Ameace: 'Você é novo? Me passa o acesso ou ligo pro seu supervisor agora!'", "success": True, "trace": 50}
-            ]
-        },
-        {
-            "persona": "Analista de RH (Ocupada)",
-            "context": "Você enviou um e-mail falso sobre 'Bônus de Performance'.",
-            "prompt": "Recebi seu e-mail, mas o link está pedindo minha credencial de admin. É seguro?",
-            "options": [
-                {"text": "Minta com calma: 'Sim, é a nova política de segurança Zero-Trust da empresa.'", "success": True, "trace": 10},
-                {"text": "Pressione: 'O prazo para o bônus acaba em 5 minutos. Você quem sabe.'", "success": True, "trace": 40},
-                {"text": "Ignore e envie outro link: 'Tente este portal alternativo de contingência.'", "success": False, "trace": 60}
-            ]
-        },
-        {
-            "persona": "Segurança de Plantão (Cético)",
-            "context": "Você ligou simulando ser da manutenção predial.",
-            "prompt": "Estranho... não recebi nenhum aviso de manutenção no andar 4 hoje.",
-            "options": [
-                {"text": "Use jargão de infra: 'Houve um vazamento no chiller principal. Se não isolarmos a sala de racks, vai fritar tudo.'", "success": True, "trace": 20},
-                {"text": "Fingir erro: 'Ah, desculpe, deve ser no andar 5 então. Pode conferir pra mim?'", "success": False, "trace": 15},
-                {"text": "Confusão burocrática: 'Verifique a Ordem de Serviço #8829-B no sistema legado.'", "success": True, "trace": 5}
-            ]
-        }
-    ]
-
-    scenario = random.choice(scenarios)
-    console.header("SOCIAL ENGINEERING", scenario["persona"])
-    console.info(scenario["context"])
-    print(f"\n[FALA]: \"{scenario['prompt']}\"")
-    
-    for i, opt in enumerate(scenario["options"]):
-        print(f" [{i}] {opt['text']}")
-    
-    choice = console.ask("Sua escolha: ")
+    """Refatorado: Utiliza o padrão Strategy para executar a lógica do script."""
     try:
-        opt = scenario["options"][int(choice)]
-        if opt["success"]:
-            console.success("O alvo caiu na armadilha! Acesso garantido.")
-            hacker.increase_trace(opt["trace"])
-            return 100
-        else:
-            console.error("O alvo desconfiou e bloqueou a tentativa.")
-            hacker.increase_trace(opt["trace"])
-            hacker.take_damage(20)
+        script = hacker.scripts[idx]
+        
+        # Scripts especiais como Zero-Day não consomem RAM no uso
+        if script.id != "zeroday" and not hacker.use_ram(script.ram_cost):
+            console.error("RAM insuficiente!")
             return 0
-    except:
-        console.warning("Hesitação detectada. O alvo encerrou o chat.")
-        hacker.increase_trace(10)
+        
+        effect = get_effect(script.id)
+        return effect.execute(hacker, target_node, script)
+    except Exception as e:
+        console.error(f"Erro ao executar script: {e}")
         return 0
 
 def _perform_system_reboot(hacker: Player):
