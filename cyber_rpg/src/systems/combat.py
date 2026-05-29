@@ -1,6 +1,7 @@
 import random
 import time
 from ui import console
+from ui.combat_ui import CombatUI
 from entities.player import Player
 from entities.network import NetworkNode
 from entities.script import HackingScript
@@ -8,12 +9,12 @@ from systems.auto_hacker import AutoHacker
 from systems.script_effects import get_effect
 
 def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
-    console.header(f"INICIANDO INVASÃO: {target_server.ip}")
+    CombatUI.display_header(target_server.ip)
     server_health = 40 if "Firewall" in target_server.node_type else 25
     
     while server_health > 0 and hacker.connection_stability > 0:
-        _display_combat_status(hacker, server_health)
-        player_choice = console.ask("Ação [1-3] ou '....': ")
+        CombatUI.display_status(hacker, server_health)
+        player_choice = CombatUI.ask_action()
 
         if player_choice == "....":
             action, sub_action = AutoHacker.resolve_combat(hacker, server_health)
@@ -37,52 +38,40 @@ def run_privesc(hacker: Player, target_server: NetworkNode) -> bool:
     if target_server.is_corrupted:
         console.error("Sistemas de autenticação destruídos.")
         return False
-    console.header("PRIVILEGE ESCALATION", "SCANNING FOR KERNEL EXPLOITS")
+    
     time.sleep(1.5)
     addresses = ["0x" + "".join(random.choices("ABCDEF123456789", k=6)) for _ in range(3)]
     vuln_idx = random.randint(0, 2)
     addresses[vuln_idx] = addresses[vuln_idx][:-1] + "0"
-    for i, addr in enumerate(addresses): print(f" [{i}] {addr}")
-    choice = console.ask("Endereço (terminado em 0): ")
+    
+    choice = CombatUI.display_privesc_challenge(addresses)
     if choice == str(vuln_idx):
         console.success("Acesso ROOT garantido."); target_server.is_root = True; return True
     hacker.increase_trace(25); return False
 
-def _display_combat_status(hacker, server_health):
-    print(f"\n[ALVO]: {server_health} HP | [CONEXÃO]: {hacker.connection_stability}% | [RAM]: {hacker.current_ram}GB")
-    console.trace_bar(hacker.trace_level)
-    print("\n[1] Ataque Manual | [2] Usar Script | [3] Reboot")
-
 def _process_manual_attack(hacker, auto=False) -> int:
     cmd = random.choice(["bypass --auth", "inject --payload", "flood --packets"])
-    console.info(f" >>> DIGITE RÁPIDO: {cmd}")
-    u_input = cmd if auto else console.ask("> ")
+    u_input = cmd if auto else CombatUI.ask_manual_cmd(cmd)
     if u_input == cmd:
         dmg = random.randint(5, 10); hacker.increase_trace(2); console.success(f"Dano: {dmg}"); return dmg
     hacker.take_damage(15); return 0
 
 def _process_script_menu(hacker, target_node) -> int:
     if not hacker.scripts: return 0
-    for i, s in enumerate(hacker.scripts): print(f" [{i}] {s.name} ({s.ram_cost}GB)")
-    sel = console.ask("Índice (V para voltar): ").upper()
+    sel = CombatUI.display_script_menu(hacker.scripts)
     if sel == 'V': return 0
     try: return _execute_script_logic(hacker, int(sel), target_node)
     except: return 0
 
 def _execute_script_logic(hacker, idx: int, target_node) -> int:
-    """Refatorado: Utiliza o padrão Strategy para executar a lógica do script."""
     try:
         script = hacker.scripts[idx]
-        
-        # Scripts especiais como Zero-Day não consomem RAM no uso
         if script.id != "zeroday" and not hacker.use_ram(script.ram_cost):
             console.error("RAM insuficiente!")
             return 0
-        
         effect = get_effect(script.id)
         return effect.execute(hacker, target_node, script)
-    except Exception as e:
-        console.error(f"Erro ao executar script: {e}")
+    except:
         return 0
 
 def _perform_system_reboot(hacker: Player):
