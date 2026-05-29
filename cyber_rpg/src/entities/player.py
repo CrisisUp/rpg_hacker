@@ -11,9 +11,10 @@ class Player:
         self.level = 1
         self.exp = 0
         self.credits = 0
-        self.vulnerability_fragments = 0 # Novo: Fragmentos para compilar Zero-Day
+        self.vulnerability_fragments = 0
         self.scripts: list[HackingScript] = []
         self.collected_data = []
+        self.read_emails = [] # IDs de e-mails já lidos
 
     def to_dict(self) -> dict:
         return {
@@ -23,7 +24,8 @@ class Player:
             "credits": self.credits,
             "vulnerability_fragments": self.vulnerability_fragments,
             "script_ids": [s.id for s in self.scripts],
-            "collected_data": self.collected_data
+            "collected_data": self.collected_data,
+            "read_emails": self.read_emails
         }
 
     def from_dict(self, data: dict, all_available_scripts: list[HackingScript]):
@@ -33,6 +35,7 @@ class Player:
         self.credits = data.get("credits", self.credits)
         self.vulnerability_fragments = data.get("vulnerability_fragments", 0)
         self.collected_data = data.get("collected_data", [])
+        self.read_emails = data.get("read_emails", [])
         script_ids = data.get("script_ids", [])
         self.scripts = [s for s in all_available_scripts if s.id in script_ids]
 
@@ -42,12 +45,10 @@ class Player:
         self.exp += GameConfig.EXP_GIVEN_PER_FILE_DOWNLOAD
 
     def add_script(self, script: HackingScript):
-        """Adiciona um novo script ao arsenal se ele ainda não existir."""
         if script.id not in [s.id for s in self.scripts]:
             self.scripts.append(script)
 
     def remove_script(self, script_id: str):
-        """Remove um script do arsenal (usado para consumíveis como Zero-Day)."""
         self.scripts = [s for s in self.scripts if s.id != script_id]
 
     def add_credits(self, amount: int):
@@ -72,4 +73,4 @@ class Player:
         self.trace_level = max(0, self.trace_level - amount)
 
     def __repr__(self):
-        return f"[Hacker: {self.handle} | RAM: {self.current_ram}GB | Trace: {self.trace_level}% | Fragments: {self.vulnerability_fragments}/5]"
+        return f"[Hacker: {self.handle} | RAM: {self.current_ram}GB | Trace: {self.trace_level}%]"

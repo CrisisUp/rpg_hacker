@@ -4,7 +4,7 @@ from entities.network import NetworkNode
 from systems.generator import generate_network
 from systems.combat import start_hack, run_privesc
 from ui import console as ui_console
-from systems.loader import get_all_scripts, get_lore_data
+from systems.loader import get_all_scripts, get_lore_data, get_all_emails
 from systems.missions import MissionManager
 from systems.auto_hacker import AutoHacker
 from systems.passive_effects import PassiveEffectManager
@@ -20,6 +20,7 @@ class GameLoop:
         self.mission_manager = None
         self.passive_manager = None
         self.lore_data = get_lore_data()
+        self.all_emails = get_all_emails()
 
     def start(self):
         ui_console.console.clear()
@@ -70,8 +71,14 @@ class GameLoop:
         ui_console.console.clear()
         ui_console.header("SISTEMA DE INVASÃO", "AGENTE GHOST ONLINE")
         ui_console.display_status_table(self.player)
+        
+        unread_count = len([e for e in self.all_emails if e['mission_id'] == self.mission_manager.active_mission['id'] and e['mission_id'] not in self.player.read_emails]) if self.mission_manager.active_mission else 0
+        if unread_count > 0:
+            ui_console.warning(f"VOCÊ TEM {unread_count} E-MAIL(S) NÃO LIDO(S)! [Comando E]")
+            
         if self.player.vulnerability_fragments > 0:
             ui_console.system(f"FRAGMENTOS DE ZERO-DAY: {self.player.vulnerability_fragments}/5")
+            
         ui_console.console.print(f"\n[bold yellow][MISSÃO]: {self.mission_manager.current_title}[/bold yellow]")
         ui_console.trace_bar(self.player.trace_level)
         print("-" * 60)
@@ -96,10 +103,11 @@ class GameLoop:
         for i, n in enumerate(self.current_node.connections):
             status = "[ROOT]" if n.is_root else "[USER]" if n.is_hacked else "[LOCKED]"
             ui_console.console.print(f" [{i}] -> {n.ip} ({n.node_type}) {status}")
-        print("\n [Q] Sair | [...] Ajuda")
+        print("\n [E] Inbox | [Q] Sair | [...] Ajuda")
 
     def _handle_player_action(self, choice):
         if choice == 'Q': StateManager.save_game(self.player.to_dict()); self.is_running = False
+        elif choice == 'E': self._display_inbox()
         elif choice == '...': ui_console.display_manual()
         elif choice == '....': self._handle_player_action(AutoHacker.resolve_navigation(self.player, self.current_node, self.mission_manager))
         elif choice == 'M' and self.current_node.is_root and not self.current_node.is_sniffing: self._deploy_mitm()
@@ -107,6 +115,26 @@ class GameLoop:
         elif choice == 'P' and self.current_node.is_hacked and not self.current_node.is_root:
             if run_privesc(self.player, self.current_node): ui_console.wait_for_enter()
         else: self._process_navigation(choice)
+
+    def _display_inbox(self):
+        ui_console.console.clear()
+        ui_console.header("INBOX - MENSAGENS CRIPTOGRAFADAS", "THE ARCHITECT")
+        
+        current_mission_id = self.mission_manager.active_mission['id'] if self.mission_manager.active_mission else None
+        if not current_mission_id:
+            ui_console.system("Nenhuma mensagem nova."); ui_console.wait_for_enter(); return
+
+        mission_emails = [e for e in self.all_emails if e['mission_id'] == current_mission_id]
+        
+        for e in mission_emails:
+            ui_console.console.print(f"\n[bold cyan]DE:[/] {e['from']}")
+            ui_console.console.print(f"[bold cyan]ASSUNTO:[/] {e['subject']}")
+            ui_console.console.print(f"\n{e['body']}")
+            if e['mission_id'] not in self.player.read_emails:
+                self.player.read_emails.append(e['mission_id'])
+            print("-" * 40)
+            
+        ui_console.wait_for_enter()
 
     def _deploy_mitm(self):
         mitm_s = next((s for s in self.player.scripts if s.id == "mitm"), None)
@@ -124,7 +152,6 @@ class GameLoop:
 
     def _execute_data_download(self):
         for file in list(self.current_node.data_files):
-            # Exibe o conteúdo do lore se existir
             if file in self.lore_data:
                 ui_console.header("CONTEÚDO DO ARQUIVO", file)
                 print(f"\n{self.lore_data[file]}")

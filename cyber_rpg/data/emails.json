@@ -1,0 +1,38 @@
+[
+  {
+    "mission_id": "mission_01",
+    "from": "The Architect",
+    "subject": "BEM-VINDO AO JOGO",
+    "body": "Ghost, o seu alvo é a OmniCorp. Comece pelo Gateway. É a porta de entrada mais frágil. Pegue os logs e saia. Não tente ser herói ainda."
+  },
+  {
+    "mission_id": "mission_02",
+    "from": "The Architect",
+    "subject": "DICA: LÁBIA É TUDO",
+    "body": "Bom trabalho nos logs. Agora, use o script de Phishing. Procure por funcionários com privilégios baixos no chat. Eles são o elo mais fraco da corrente."
+  },
+  {
+    "mission_id": "mission_03",
+    "from": "The Architect",
+    "subject": "HORA DE COBRAR",
+    "body": "A OmniCorp não vai pagar por livre e espontânea vontade. Use o Ransomware no servidor financeiro. Quando eles sentirem o prejuízo, vão abrir o cofre."
+  },
+  {
+    "mission_id": "mission_04",
+    "from": "The Architect",
+    "subject": "INFILTRAÇÃO INDIRETA",
+    "body": "O servidor central está em lockdown. Mas eles confiam cegamente no fornecedor de software. Infecte o fornecedor e o resto será história."
+  },
+  {
+    "mission_id": "mission_05",
+    "from": "The Architect",
+    "subject": "ARMAMENTO PESADO",
+    "body": "Estamos quase lá. Mas as defesas do Mainframe são impenetráveis para scripts comuns. Você precisa compilar um Zero-Day. Vasculhe os Vaults."
+  },
+  {
+    "mission_id": "mission_06",
+    "from": "The Architect",
+    "subject": "O GOLPE DE MISERICÓRDIA",
+    "body": "Este é o fim da linha. Use o Zero-Day, destrua o firewall do Mainframe e traga o Projeto Alpha. Estaremos te esperando do outro lado."
+  }
+]

@@ -21,6 +21,18 @@ class TestPlayer(unittest.TestCase):
         self.assertEqual(self.player.handle, "TestHacker")
         self.assertEqual(self.player.current_ram, 16)
         self.assertEqual(self.player.credits, 0)
+        self.assertEqual(self.player.read_emails, [])
+
+    def test_to_from_dict(self):
+        """Testa serialização e desserialização do jogador."""
+        self.player.read_emails.append("mission_01")
+        data = self.player.to_dict()
+        self.assertIn("read_emails", data)
+        self.assertEqual(data["read_emails"], ["mission_01"])
+        
+        new_player = Player("New")
+        new_player.from_dict(data, [])
+        self.assertEqual(new_player.read_emails, ["mission_01"])
 
     def test_use_ram_success(self):
         """Testa consumo de RAM com sucesso."""
