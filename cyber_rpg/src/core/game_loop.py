@@ -127,7 +127,7 @@ class GameLoop:
         for i, n in enumerate(self.current_node.connections):
             status = "[ROOT]" if n.is_root else "[USER]" if n.is_hacked else "[LOCKED]"
             ui_console.console.print(f" [{i}] -> {n.ip} ({n.node_type}) {status}")
-        print("\n [E] Inbox | [L] Logs | [B] Dark Web | [Q] Sair | [...] Ajuda")
+        print("\n [E] Inbox | [L] Logs | [B] Dark Web | [S] Contratos | [Q] Sair | [...] Ajuda")
 
     def _handle_player_action(self, choice):
         if choice == 'Q': 
@@ -136,6 +136,7 @@ class GameLoop:
         elif choice == 'E': self._display_inbox()
         elif choice == 'L': AuditLogger.display_logs()
         elif choice == 'B': BlackMarket.display_market(self.player)
+        elif choice == 'S': self._display_side_missions()
         elif choice == '...': ui_console.display_manual()
         elif choice == '....': self._handle_player_action(AutoHacker.resolve_navigation(self.player, self.current_node, self.mission_manager))
         elif choice == 'M' and self.current_node.is_root and not self.current_node.is_sniffing: self._deploy_mitm()
@@ -144,6 +145,27 @@ class GameLoop:
             if run_privesc(self.player, self.current_node): ui_console.wait_for_enter()
         else: self._process_navigation(choice)
 
+    def _display_side_missions(self):
+        ui_console.console.clear()
+        ui_console.header("QUADRO DE CONTRATOS", "SUBMUNDO")
+        
+        available = self.mission_manager.available_side_missions
+        if not available:
+            ui_console.info("Nenhum contrato disponível no momento.")
+            ui_console.wait_for_enter(); return
+
+        for i, m in enumerate(available):
+            ui_console.console.print(f" [{i}] [bold cyan]{m['title']}[/]")
+            ui_console.console.print(f"     {m['description']}")
+            ui_console.console.print(f"     Recompensa: [bold gold1]${m['reward_credits']}[/]\n")
+        
+        sel = ui_console.ask("Aceitar contrato (Enter para voltar): ")
+        if sel.isdigit() and int(sel) < len(available):
+            mission = available[int(sel)]
+            if self.mission_manager.accept_side_mission(mission['id']):
+                ui_console.success(f"Contrato aceito: {mission['title']}")
+                AuditLogger.log("SISTEMA", f"Contrato secundário aceito: {mission['title']}")
+        ui_console.wait_for_enter()
 
     def _display_inbox(self):
         ui_console.console.clear()
@@ -211,25 +233,32 @@ class GameLoop:
             self._trigger_game_over()
             return
 
+        # Verifica se alguma missão (principal ou secundária) foi concluída
         m = self.mission_manager.check_objective(self.player.collected_data)
-        if m:
-            ui_console.header("MISSÃO CONCLUÍDA", "OBJETIVO ALCANÇADO")
+        while m:
+            ui_console.header("MISSÃO CONCLUÍDA", m['title'])
             self.player.add_credits(m['reward_credits'])
-            self.player.increase_notoriety(1) # Ganha 1 de notoriedade por missão concluída
-            AuditLogger.log("SISTEMA", f"Missão concluída. Notoriedade aumentou para {self.player.notoriety}.")
             
-            if self.mission_manager.pending_choice:
-                self._handle_mission_branching()
-            elif self.mission_manager.is_story_complete: 
-                ui_console.success("\nVOCÊ VENCEU."); self.is_running = False
+            if m.get('type') == 'main':
+                self.player.increase_notoriety(1)
+                AuditLogger.log("SISTEMA", f"Missão principal concluída: {m['title']}. Notoriedade: {self.player.notoriety}")
+                if self.mission_manager.pending_choice:
+                    self._handle_mission_branching()
+                elif self.mission_manager.is_story_complete: 
+                    ui_console.success("\nVOCÊ VENCEU."); self.is_running = False
+            else:
+                AuditLogger.log("SISTEMA", f"Missão secundária concluída: {m['title']}")
+            
             ui_console.wait_for_enter()
+            # Verifica se há outra missão concluída (no caso de side quests)
+            m = self.mission_manager.check_objective(self.player.collected_data)
 
     def _handle_mission_branching(self):
         ui_console.header("MÚLTIPLOS CONTRATOS DETECTADOS", "ESCOLHA SEU PRÓXIMO ALVO")
         choices = self.mission_manager.get_available_choices()
         for i, c in enumerate(choices):
-            ui_console.print(f" [{i}] [bold cyan]{c['title']}[/]")
-            ui_console.print(f"     {c['description']}\n")
+            ui_console.console.print(f" [{i}] [bold cyan]{c['title']}[/]")
+            ui_console.console.print(f"     {c['description']}\n")
         
         sel = ui_console.ask("Selecione o contrato: ")
         try:

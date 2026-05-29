@@ -1,6 +1,7 @@
 [
   {
     "id": "mission_01",
+    "type": "main",
     "title": "Fase 1: Infiltração Inicial",
     "description": "A OmniCorp deixou uma porta aberta. Entre no Gateway e obtenha os 'access_logs.txt' para mapear os funcionários.",
     "required_file": "access_logs.txt",
@@ -9,6 +10,7 @@
   },
   {
     "id": "mission_02_silent",
+    "type": "main",
     "title": "Fase 2 (Silenciosa): A Arte do Phishing",
     "description": "Caminho Silencioso: Use os logs para enganar um estagiário e obter a 'lista_contatos.db'. Recompensa menor, mas rastreio baixo.",
     "required_file": "lista_contatos.db",
@@ -17,6 +19,7 @@
   },
   {
     "id": "mission_02_loud",
+    "type": "main",
     "title": "Fase 2 (Agressiva): Brute Force em Massa",
     "description": "Caminho Agressivo: Esqueça a lábia. Derrube o servidor de e-mails para forçar um dump da 'lista_contatos.db'. Recompensa alta, mas rastreio inicial aumentado.",
     "required_file": "lista_contatos.db",
@@ -25,6 +28,7 @@
   },
   {
     "id": "mission_03",
+    "type": "main",
     "title": "Fase 3: Sequestro de Dados",
     "description": "A OmniCorp está ocultando fundos. Infecte o Servidor Financeiro com Ransomware para forçá-los a descriptografar o arquivo 'contas_offshore.enc'.",
     "required_file": "contas_offshore.enc",
@@ -33,6 +37,7 @@
   },
   {
     "id": "mission_04",
+    "type": "main",
     "title": "Fase 4: A Fraqueza do Parceiro",
     "description": "O servidor central é impenetrável. Infiltre-se no 'Software Supplier' e plante um Backdoor. Espere a atualização automática para capturar o 'token_acesso_admin.key'.",
     "required_file": "token_acesso_admin.key",
@@ -41,18 +46,47 @@
   },
   {
     "id": "mission_05",
+    "type": "main",
     "title": "Fase 5: Fragmentos do Caos",
     "description": "Para o ataque final, precisamos de poder bruto. Explore os cofres (Vaults) da rede e colete 5 fragmentos de vulnerabilidade para compilar um Zero-Day.",
-    "required_file": "ZeroDay_Exploit.exe",
+    "required_file": "ZeroDay_Exploit.zip",
     "reward_credits": 4000,
     "next_missions": ["mission_06"]
   },
   {
     "id": "mission_06",
+    "type": "main",
     "title": "Fase Final: Projeto Alpha",
     "description": "Use seu Zero-Day contra o Mainframe Central para destruir suas defesas e baixar o 'project_alpha.pdf'. É agora ou nunca.",
     "required_file": "project_alpha.pdf",
     "reward_credits": 10000,
+    "next_missions": []
+  },
+  {
+    "id": "side_01",
+    "type": "side",
+    "title": "Contrato: Acerto de Contas",
+    "description": "Um funcionário demitido quer vingança. Delete o registro de 'backup.zip' no servidor de arquivos para atrasar o projeto dele.",
+    "required_file": "backup.zip",
+    "reward_credits": 800,
+    "next_missions": []
+  },
+  {
+    "id": "side_02",
+    "type": "side",
+    "title": "Contrato: Espionagem Industrial",
+    "description": "Uma empresa rival quer ver as configurações da OmniCorp. Baixe o 'config.old' do servidor de Proxy.",
+    "required_file": "config.old",
+    "reward_credits": 1200,
+    "next_missions": []
+  },
+  {
+    "id": "side_03",
+    "type": "side",
+    "title": "Contrato: Limpeza de Rastro",
+    "description": "Um hacker amador foi pego. Recupere o 'notes.txt' do nó secreto (10.0.1.254) antes que a perícia chegue.",
+    "required_file": "notes.txt",
+    "reward_credits": 2000,
     "next_missions": []
   }
 ]

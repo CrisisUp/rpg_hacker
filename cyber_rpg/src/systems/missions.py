@@ -2,25 +2,36 @@ from systems.loader import get_all_missions
 
 class MissionManager:
     """
-    Gerencia o ciclo de vida das missões da história.
-    Suporta ramificações e escolhas narrativas.
+    Gerencia o ciclo de vida das missões da história e contratos secundários.
     """
     def __init__(self):
-        self.all_missions = get_all_missions()
-        self.active_mission = self.all_missions[0] if self.all_missions else None
+        all_data = get_all_missions()
+        self.main_missions = [m for m in all_data if m.get('type') == 'main']
+        self.side_missions_pool = [m for m in all_data if m.get('type') == 'side']
+        
+        self.active_mission = self.main_missions[0] if self.main_missions else None
+        self.active_side_missions = []
+        self.available_side_missions = self.side_missions_pool[:]
+        
         self.is_story_complete = False
         self.pending_choice = False
 
     def check_objective(self, player_collected_files: list) -> dict:
         """
-        Verifica se o jogador coletou o arquivo necessário.
-        Se houver ramificação, marca como pendente de escolha.
+        Verifica se o jogador coletou o arquivo necessário para a missão principal 
+        ou para qualquer missão secundária ativa.
         """
+        # 1. Verifica Missões Secundárias Primeiro (podem ser múltiplas)
+        for side in list(self.active_side_missions):
+            if side.get('required_file') in player_collected_files:
+                self.active_side_missions.remove(side)
+                return side # Retorna a missão secundária concluída
+
+        # 2. Verifica Missão Principal
         if not self.active_mission or self.is_story_complete or self.pending_choice:
             return None
 
         target_file = self.active_mission.get('required_file')
-        
         if target_file in player_collected_files:
             completed = self.active_mission
             next_ids = self.active_mission.get('next_missions', [])
@@ -38,24 +49,44 @@ class MissionManager:
         return None
 
     def get_available_choices(self) -> list:
-        """Retorna os objetos das missões disponíveis para escolha."""
+        """Retorna as opções de ramificação da história principal."""
         if not self.active_mission: return []
         next_ids = self.active_mission.get('next_missions', [])
-        return [m for m in self.all_missions if m['id'] in next_ids]
+        return [m for m in self.main_missions if m['id'] in next_ids]
 
     def select_mission(self, mission_id: str):
-        """Define a próxima missão ativa a partir da escolha do jogador."""
-        self.active_mission = next((m for m in self.all_missions if m['id'] == mission_id), None)
+        """Define a próxima missão principal ativa."""
+        self.active_mission = next((m for m in self.main_missions if m['id'] == mission_id), None)
         self.pending_choice = False
         if not self.active_mission:
             self.is_story_complete = True
 
+    def accept_side_mission(self, mission_id: str) -> bool:
+        """Adiciona uma missão secundária à lista de ativos."""
+        mission = next((m for m in self.available_side_missions if m['id'] == mission_id), None)
+        if mission and mission not in self.active_side_missions:
+            self.active_side_missions.append(mission)
+            self.available_side_missions.remove(mission)
+            return True
+        return False
+
     @property
     def current_title(self) -> str:
-        return self.active_mission['title'] if self.active_mission else "SISTEMA LIVRE"
+        title = self.active_mission['title'] if self.active_mission else "SISTEMA LIVRE"
+        if self.active_side_missions:
+            title += f" (+{len(self.active_side_missions)} Side)"
+        return title
 
     @property
     def current_description(self) -> str:
+        desc = ""
         if self.is_story_complete:
-            return "Todos os objetivos da OmniCorp foram neutralizados."
-        return self.active_mission['description'] if self.active_mission else "Nenhum objetivo pendente."
+            desc = "Objetivos da OmniCorp neutralizados."
+        elif self.active_mission:
+            desc = self.active_mission['description']
+        
+        if self.active_side_missions:
+            desc += "\n\n[ATIVOS SECUNDÁRIOS]:"
+            for s in self.active_side_missions:
+                desc += f"\n- {s['title']}: {s['required_file']}"
+        return desc

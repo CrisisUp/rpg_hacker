@@ -76,6 +76,7 @@ def display_manual():
     console.print("  - [white]Números (0, 1...):[/] Navegar entre servidores.")
     console.print("  - [white]D:[/] Baixar arquivos detectados.")
     console.print("  - [white]B:[/] Acessar a Dark Web (Mercado Negro).")
+    console.print("  - [white]S:[/] Ver contratos secundários disponíveis.")
     console.print("  - [white]L:[/] Abrir logs de auditoria.")
     console.print("  - [white]Q:[/] Encerrar conexão.")
     wait_for_enter()
