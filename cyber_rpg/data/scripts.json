@@ -63,6 +63,15 @@
     "description": "Exploit de baixo nível que derruba o nó instantaneamente, mas corrompe todos os dados locais."
   },
   {
+    "id": "decrypter",
+    "name": "Ransom_Neutralizer.exe",
+    "ram_cost": 4,
+    "damage": 0,
+    "trace_impact": 5,
+    "price": 300,
+    "description": "Desativa processos de Ransomware e descriptografa arquivos em nós infectados."
+  },
+  {
     "id": "zeroday",
     "name": "ZeroDay_Exploit.exe",
     "ram_cost": 0,

@@ -34,7 +34,7 @@ def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
 
 def run_privesc(hacker: Player, target_server: NetworkNode) -> bool:
     if target_server.is_corrupted:
-        console.error("Sistemas de autenticação destruídos. Impossível escalar privilégios em um nó morto.")
+        console.error("Sistemas de autenticação destruídos.")
         return False
     console.header("PRIVILEGE ESCALATION", "SCANNING FOR KERNEL EXPLOITS")
     time.sleep(1.5)
@@ -73,21 +73,24 @@ def _execute_script_logic(hacker, idx: int, target_node) -> int:
     if not hacker.use_ram(s.ram_cost): console.error("RAM insuficiente!"); return 0
     
     if s.id == "phishing": return _run_social_engineering_game(hacker)
-    
     if s.id == "xss":
         if "Web Server" in target_node.node_type:
             console.success("Payload XSS injetado."); target_node.is_xss_active = True; return 100
         console.error("Apenas para Web Servers!"); return 0
 
     if s.id == "overflow":
-        console.warning("!!! EXECUTANDO OVERFLOW DE MEMÓRIA !!!")
-        console.system("[*] Injetando pacotes de tamanho inválido...")
-        time.sleep(1)
-        console.error("[CRITICAL] Segmentação de memória corrompida. O servidor está morrendo.")
-        target_node.is_corrupted = True
-        target_node.data_files = [] # Destrói os arquivos
-        hacker.increase_trace(s.trace_impact)
-        return 100
+        console.warning("!!! EXECUTANDO OVERFLOW !!!")
+        target_node.is_corrupted = True; target_node.data_files = []
+        hacker.increase_trace(s.trace_impact); return 100
+
+    if s.id == "decrypter":
+        if target_node.is_under_ransomware:
+            console.success("Ransomware neutralizado! Arquivos recuperados.")
+            target_node.ransomware_timer = 0
+            return 0 # Neutralizador, não dá dano
+        else:
+            console.error("Este servidor não está infectado por Ransomware.")
+            return 0
 
     console.system(f"[*] Executando: {s.name}")
     hacker.increase_trace(s.trace_impact)
