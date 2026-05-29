@@ -23,10 +23,6 @@ Implementamos mecânicas que simulam o cibercrime moderno:
   - **Extorsão Dupla:** Opção de vazar dados para lucro imediato em troca de visibilidade extrema.
   - **Gestão de Tensão:** O rastreio aumenta drasticamente a cada turno enquanto o ransomware criptografa o alvo.
 
-### 3. Agente Ghost (IA Mentora)
-
-O comando secreto "...." ativa a IA que analisa a situação atual (nós, RAM, Trace) e toma a melhor decisão tática, explicando o raciocínio pedagógico por trás da ação.
-
 ## 🎭 Progressão e Economia
 
 - **Missões:** Estruturadas via JSON, exigem a coleta de arquivos específicos para avançar na narrativa.
