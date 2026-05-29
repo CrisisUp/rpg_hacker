@@ -138,11 +138,16 @@ class RansomwareEffect(BaseEffect):
         sub_choice = console.ask("Escolha: ")
         
         target_node.ransomware_timer = 5
+        hacker.increase_alert(1)
+        console.warning("Ataque detectado! Nível de alerta corporativo aumentou (+1).")
+        
         if sub_choice == "2":
             gain = random.randint(500, 1000)
             console.warning(f"DADOS VAZADOS! +${gain} imediatos. Equipe de resposta em alerta máximo.")
             hacker.add_credits(gain)
             hacker.increase_trace(40)
+            hacker.increase_alert(1)
+            console.warning("Vazamento massivo! Nível de alerta corporativo aumentou novamente (+1).")
         
         hacker.increase_trace(script.trace_impact)
         return 100

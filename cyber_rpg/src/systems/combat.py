@@ -10,7 +10,14 @@ from systems.script_effects import get_effect
 
 def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
     CombatUI.display_header(target_server.ip)
-    server_health = 40 if "Firewall" in target_server.node_type else 25
+    
+    # Cálculo de dificuldade dinâmica baseado no Nível de Alerta Corporativo
+    base_health = 40 if "Firewall" in target_server.node_type else 25
+    alert_bonus = hacker.alert_level * 5 # Cada ponto de alerta adiciona 5 HP
+    server_health = base_health + alert_bonus
+    
+    if hacker.alert_level > 0:
+        console.warning(f"DEFESAS ATIVAS! Nível de alerta {hacker.alert_level} detectado. (+{alert_bonus} HP)")
     
     while server_health > 0 and hacker.connection_stability > 0:
         CombatUI.display_status(hacker, server_health)

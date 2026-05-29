@@ -207,7 +207,8 @@ class GameLoop:
             # Efeitos da escolha
             if "loud" in chosen['id']:
                 self.player.increase_trace(30)
-                ui_console.warning("Ação barulhenta! TI em alerta máximo (+30% Trace).")
+                self.player.increase_alert(1)
+                ui_console.warning("Ação barulhenta! TI em alerta máximo (+30% Trace, +1 Nível de Alerta).")
         except:
             self.mission_manager.select_mission(choices[0]['id']) # Fallback
             ui_console.warning("Contrato padrão selecionado devido a erro de entrada.")

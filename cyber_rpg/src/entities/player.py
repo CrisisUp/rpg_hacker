@@ -12,9 +12,10 @@ class Player:
         self.exp = 0
         self.credits = 0
         self.vulnerability_fragments = 0
+        self.alert_level = 0 # Novo: Nível de alerta global corporativo
         self.scripts: list[HackingScript] = []
         self.collected_data = []
-        self.read_emails = [] # IDs de e-mails já lidos
+        self.read_emails = []
 
     def to_dict(self) -> dict:
         return {
@@ -23,6 +24,7 @@ class Player:
             "exp": self.exp,
             "credits": self.credits,
             "vulnerability_fragments": self.vulnerability_fragments,
+            "alert_level": self.alert_level,
             "script_ids": [s.id for s in self.scripts],
             "collected_data": self.collected_data,
             "read_emails": self.read_emails
@@ -34,6 +36,7 @@ class Player:
         self.exp = data.get("exp", self.exp)
         self.credits = data.get("credits", self.credits)
         self.vulnerability_fragments = data.get("vulnerability_fragments", 0)
+        self.alert_level = data.get("alert_level", 0)
         self.collected_data = data.get("collected_data", [])
         self.read_emails = data.get("read_emails", [])
         script_ids = data.get("script_ids", [])
@@ -72,5 +75,8 @@ class Player:
     def reduce_trace(self, amount: int):
         self.trace_level = max(0, self.trace_level - amount)
 
+    def increase_alert(self, amount: int):
+        self.alert_level += amount
+
     def __repr__(self):
-        return f"[Hacker: {self.handle} | RAM: {self.current_ram}GB | Trace: {self.trace_level}%]"
+        return f"[Hacker: {self.handle} | RAM: {self.current_ram}GB | Trace: {self.trace_level}% | Alerta: {self.alert_level}]"
