@@ -1,26 +1,50 @@
 [
   {
     "id": "mission_01",
-    "title": "O Despertar do Hacker",
-    "description": "Infiltre-se na rede e obtenha os 'access_logs.txt'.",
+    "title": "Fase 1: Infiltração Inicial",
+    "description": "A OmniCorp deixou uma porta aberta. Entre no Gateway e obtenha os 'access_logs.txt' para mapear os funcionários.",
     "required_file": "access_logs.txt",
-    "reward_credits": 500,
+    "reward_credits": 300,
     "next_mission": "mission_02"
   },
   {
     "id": "mission_02",
-    "title": "A Rota do Dinheiro",
-    "description": "Localize o servidor financeiro e baixe o 'payroll.xlsx'.",
-    "required_file": "payroll.xlsx",
-    "reward_credits": 1500,
+    "title": "Fase 2: A Arte do Phishing",
+    "description": "Usando os logs, identificamos um estagiário vulnerável. Use o script de Phishing para obter a 'lista_contatos.db' sem disparar o firewall.",
+    "required_file": "lista_contatos.db",
+    "reward_credits": 600,
     "next_mission": "mission_03"
   },
   {
     "id": "mission_03",
-    "title": "O Golpe Final",
-    "description": "Encontre o projeto secreto 'project_alpha.pdf'.",
+    "title": "Fase 3: Sequestro de Dados",
+    "description": "A OmniCorp está ocultando fundos. Infecte o Servidor Financeiro com Ransomware para forçá-los a descriptografar o arquivo 'contas_offshore.enc'.",
+    "required_file": "contas_offshore.enc",
+    "reward_credits": 1500,
+    "next_mission": "mission_04"
+  },
+  {
+    "id": "mission_04",
+    "title": "Fase 4: A Fraqueza do Parceiro",
+    "description": "O servidor central é impenetrável. Infiltre-se no 'Software Supplier' e plante um Backdoor. Espere a atualização automática para capturar o 'token_acesso_admin.key'.",
+    "required_file": "token_acesso_admin.key",
+    "reward_credits": 2500,
+    "next_mission": "mission_05"
+  },
+  {
+    "id": "mission_05",
+    "title": "Fase 5: Fragmentos do Caos",
+    "description": "Para o ataque final, precisamos de poder bruto. Explore os cofres (Vaults) da rede e colete 5 fragmentos de vulnerabilidade para compilar um Zero-Day.",
+    "required_file": "ZeroDay_Exploit.exe",
+    "reward_credits": 4000,
+    "next_mission": "mission_06"
+  },
+  {
+    "id": "mission_06",
+    "title": "Fase Final: Projeto Alpha",
+    "description": "Use seu Zero-Day contra o Mainframe Central para destruir suas defesas e baixar o 'project_alpha.pdf'. É agora ou nunca.",
     "required_file": "project_alpha.pdf",
-    "reward_credits": 5000,
+    "reward_credits": 10000,
     "next_mission": null
   }
 ]
