@@ -20,7 +20,7 @@ def generate_network(nodes_count=18):
     ]
     
     # Arquivos de Lore (História) que não são obrigatórios
-    lore_files = ["email_estagiario.txt", "aviso_ti.txt", "passwords.txt", "config.old"]
+    lore_files = ["email_estagiario.txt", "aviso_ti.txt", "passwords.txt", "config.old", "architect_legacy.log", "alpha_true_purpose.pdf", "warning_from_past.txt"]
     common_files = ["backup.zip", "key.pem", "notes.txt"]
 
     # Criação do nó secreto mencionado nos logs

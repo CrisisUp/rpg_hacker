@@ -86,5 +86,21 @@
     "from": "Zero_Cool",
     "subject": "VALEU PELOS DADOS",
     "body": "Sabe aquele servidor de e-mail que você estava namorando? Cheguei primeiro. Se quiser os dados de volta, vai ter que me encontrar na rede. Boa caçada."
+  },
+  {
+    "id": "email_mystery_01",
+    "trigger_type": "notoriety",
+    "threshold": 4,
+    "from": "U_N_K_N_O_W_N",
+    "subject": "QUEM É O ARCHITECT?",
+    "body": "Ghost, você já se perguntou por que o Architect sabe tanto sobre a OmniCorp? Ele conhece os protocolos de segurança melhor do que os próprios engenheiros. Procure pelo arquivo 'architect_legacy.log' nos servidores de backup. A verdade dói."
+  },
+  {
+    "id": "email_mystery_02",
+    "trigger_type": "notoriety",
+    "threshold": 9,
+    "from": "U_N_K_N_O_W_N",
+    "subject": "PARE O ALPHA",
+    "body": "Você está quase terminando o serviço para ele, não é? O Projeto Alpha não é sobre liberdade. É sobre controle. Se você baixar o arquivo final, não haverá volta para o Ghost original. Você foi avisado."
   }
 ]

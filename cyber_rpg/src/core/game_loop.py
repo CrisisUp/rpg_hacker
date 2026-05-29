@@ -265,6 +265,14 @@ class GameLoop:
             if file in self.lore_data:
                 ui_console.header("CONTEÚDO DO ARQUIVO", file)
                 print(f"\n{self.lore_data[file]}")
+                
+                # Reação Especial para Plot Twist
+                if file in ["architect_legacy.log", "alpha_true_purpose.pdf"]:
+                    ui_console.error("\n[!] INTERFERÊNCIA DETECTADA NO TERMINAL...")
+                    time.sleep(1)
+                    ui_console.warning("O Architect está tentando deletar este arquivo remotamente!")
+                    AuditLogger.log("SISTEMA", f"Jogador acessou arquivo restrito: {file}")
+
                 ui_console.wait_for_enter()
 
             if file == "ZeroDay_Exploit.zip": self._unlock_zeroday()

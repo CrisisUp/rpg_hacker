@@ -7,5 +7,8 @@
   "email_estagiario.txt": "E-MAIL - Estagiário de TI\n'Cara, eu juro que o cara da manutenção parecia real no chat! Agora meu acesso foi bloqueado e o chefe tá uma fera. Acho que vou ser demitido.'\nPS: Ele até sabia que a porta do servidor de arquivos era a 443.",
   "aviso_ti.txt": "AVISO URGENTE - EQUIPE DE INFRA\n'QUEM INSTALOU RANSOMWARE NO SERVIDOR FINANCEIRO?! Estamos perdendo 10% da rede a cada minuto por causa do rastreio lento. DESLIGUEM TUDO!'\nFIX: Use o Decrypter v2.0 para reverter a infecção no IP 10.0.1.15.",
   "passwords.txt": "NOTAS DE SENHAS (NÃO DELETAR)\n- Email: OmniSafe2026\n- Database: Admin@DB123\n- Proxy: NoTraceRequired",
-  "config.old": "CONFIGURAÇÃO ANTIGA - GATEWAY\nfirewall_level=2\nsecret_node_ip=10.0.1.254\ndisable_ice=false"
+  "config.old": "CONFIGURAÇÃO ANTIGA - GATEWAY\nfirewall_level=2\nsecret_node_ip=10.0.1.254\ndisable_ice=false",
+  "architect_legacy.log": "LOG FRAGMENTADO - RECUPERADO\n'...paciente zero apresentou rejeição à interface neural. O Architect não é um homem, é uma rede de consciências clonadas. Eles não querem destruir a OmniCorp, eles querem habitá-la.'",
+  "alpha_true_purpose.pdf": "PROJETO ALPHA: RELATÓRIO DE IMPACTO PSICOLÓGICO\n'O objetivo real não é controle de hardware, mas o upload da consciência do Architect para todos os usuários conectados à rede OmniLink. O Ghost é apenas o entregador.'",
+  "warning_from_past.txt": "MENSAGEM ANÔNIMA\n'Se você está lendo isso, eu já fui substituído. Não confie no Architect. O Projeto Alpha é uma armadilha para sua própria mente. Desconecte enquanto pode.'"
 }
