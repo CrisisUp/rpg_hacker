@@ -8,13 +8,12 @@ from systems.missions import MissionManager
 
 class TestMissions(unittest.TestCase):
     def setUp(self):
-        # Como o MissionManager carrega o JSON real, vamos garantir que ele inicializa
         self.manager = MissionManager()
 
     def test_initial_mission(self):
         """Verifica se a primeira missão é carregada."""
         self.assertIsNotNone(self.manager.active_mission)
-        self.assertEqual(self.manager.current_title, "O Despertar do Hacker")
+        self.assertEqual(self.manager.current_title, "Fase 1: Infiltração Inicial")
 
     def test_mission_completion(self):
         """Verifica se a coleta do arquivo correto completa a missão."""
@@ -26,7 +25,7 @@ class TestMissions(unittest.TestCase):
         self.assertIsNotNone(completed)
         self.assertEqual(completed['required_file'], target_file)
         # Deve ter avançado para a próxima
-        self.assertNotEqual(self.manager.current_title, "O Despertar do Hacker")
+        self.assertNotEqual(self.manager.current_title, "Fase 1: Infiltração Inicial")
 
 if __name__ == "__main__":
     unittest.main()

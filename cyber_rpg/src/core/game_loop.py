@@ -4,7 +4,7 @@ from entities.network import NetworkNode
 from systems.generator import generate_network
 from systems.combat import start_hack, run_privesc
 from ui import console as ui_console
-from systems.loader import get_all_scripts
+from systems.loader import get_all_scripts, get_lore_data
 from systems.missions import MissionManager
 from systems.auto_hacker import AutoHacker
 from systems.passive_effects import PassiveEffectManager
@@ -19,6 +19,7 @@ class GameLoop:
         self.all_network_nodes = []
         self.mission_manager = None
         self.passive_manager = None
+        self.lore_data = get_lore_data()
 
     def start(self):
         ui_console.console.clear()
@@ -123,6 +124,12 @@ class GameLoop:
 
     def _execute_data_download(self):
         for file in list(self.current_node.data_files):
+            # Exibe o conteúdo do lore se existir
+            if file in self.lore_data:
+                ui_console.header("CONTEÚDO DO ARQUIVO", file)
+                print(f"\n{self.lore_data[file]}")
+                ui_console.wait_for_enter()
+
             if file == "ZeroDay_Exploit.zip": self._unlock_zeroday()
             elif "vulnerability_fragment" in file:
                 self.player.vulnerability_fragments += 1

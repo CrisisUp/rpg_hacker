@@ -1,8 +1,9 @@
 import random
+import json
 from entities.network import NetworkNode
 
 def generate_network(nodes_count=18):
-    """Gera a rede garantindo a presença de arquivos necessários para a nova campanha."""
+    """Gera a rede incluindo arquivos de missão e lore narrativo."""
     types_pool = ["Web Server", "Email Server", "File Server", "Proxy", "DNS Server"]
     secure_types = ["Firewall", "Database", "Mainframe", "Encrypted Vault"]
     external_types = ["Software Supplier", "IT Partner"]
@@ -10,7 +11,6 @@ def generate_network(nodes_count=18):
     gateway = NetworkNode("192.168.0.1", "Gateway Público")
     all_nodes = [gateway]
 
-    # Arquivos obrigatórios da missão na ordem da campanha
     mission_files = [
         "access_logs.txt", 
         "lista_contatos.db", 
@@ -18,12 +18,14 @@ def generate_network(nodes_count=18):
         "token_acesso_admin.key", 
         "project_alpha.pdf"
     ]
+    
+    # Arquivos de Lore (História) que não são obrigatórios
+    lore_files = ["email_estagiario.txt", "aviso_ti.txt"]
     common_files = ["passwords.txt", "config.old", "backup.zip", "key.pem"]
 
     for i in range(1, nodes_count):
         ip = f"10.0.1.{i+1}"
         
-        # Lógica de tipos de nó
         if i == 1:
             ntype = "Software Supplier"
         elif random.random() < 0.15:
@@ -35,11 +37,9 @@ def generate_network(nodes_count=18):
             
         new_node = NetworkNode(ip, ntype)
         
-        # Distribuição de arquivos de missão específicos para certos tipos de nó
+        # Colocação de arquivos de missão
         if mission_files:
             current_target_file = mission_files[0]
-            
-            # Regras de posicionamento inteligente
             should_place = False
             if current_target_file == "access_logs.txt" and ntype == "Gateway Público":
                 should_place = True
@@ -55,7 +55,11 @@ def generate_network(nodes_count=18):
             if should_place:
                 new_node.data_files.append(mission_files.pop(0))
 
-        # Distribuição de Fragmentos de Zero-Day e Exploits
+        # Colocação de arquivos de lore
+        if lore_files and random.random() < 0.3:
+            new_node.data_files.append(lore_files.pop(random.randint(0, len(lore_files)-1)))
+
+        # Fragmentos de Zero-Day e Exploits
         if ntype == "Encrypted Vault":
             if random.random() < 0.10:
                 new_node.data_files.append("ZeroDay_Exploit.zip")
@@ -64,7 +68,6 @@ def generate_network(nodes_count=18):
         elif ntype in secure_types and random.random() < 0.40:
             new_node.data_files.append(f"vulnerability_fragment_{random.randint(100,999)}.bin")
         
-        # Arquivos comuns
         if random.random() > 0.6:
             new_node.data_files.append(random.choice(common_files))
             
@@ -72,7 +75,6 @@ def generate_network(nodes_count=18):
         new_node.connect(target_node)
         all_nodes.append(new_node)
         
-    # Garante conectividade estratégica para Supply Chain
     suppliers = [n for n in all_nodes if "Supplier" in n.node_type]
     omnicorp_nodes = [n for n in all_nodes if "Supplier" not in n.node_type and n != gateway]
     
