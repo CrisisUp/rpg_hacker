@@ -70,7 +70,7 @@ def display_manual():
     header("HACKER'S HANDBOOK", "GUIA DE CAMPO")
     console.print("\n[bold cyan]MODOS ESPECIAIS:[/bold cyan]")
     console.print("  - [white]... :[/] Abre este manual.")
-    console.print("  - [bold magenta].... :[/] [RESTRITO] Ativa o Agente Ghost (IA de Auto-Hacking).")
+    #console.print("  - [bold magenta].... :[/] [RESTRITO] Ativa o Agente Ghost (IA de Auto-Hacking).")
     
     console.print("\n[bold cyan]COMANDOS DISPONÍVEIS:[/bold cyan]")
     console.print("  - [white]Números (0, 1...):[/] Navegar entre servidores.")

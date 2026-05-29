@@ -15,7 +15,7 @@ class CombatUI:
 
     @staticmethod
     def ask_action():
-        return console.ask("Ação [1-3] ou '....': ")
+        return console.ask("Ação [1-3]: ")
 
     @staticmethod
     def ask_manual_cmd(cmd):

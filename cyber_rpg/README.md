@@ -11,10 +11,7 @@ Um simulador de hacking tático via terminal, construído com foco em **Clean Co
 - **Zero-Day Crafting:** Colete fragmentos de vulnerabilidades para compilar exploits de uso único.
 - **Modern Ransomware:** Escolha entre extorsão padrão ou dupla (vazamento de dados).
 
-### 🤖 Inteligência Artificial Pedagógica
-
-- **Agente Ghost:** IA mentora que toma o controle (comando "....") e explica os fundamentos táticos e de segurança por trás de cada ação.
-
+---
 ## 🧪 Engenharia de Qualidade
 
 O projeto conta com uma robusta suíte de testes unitários e de integração:
