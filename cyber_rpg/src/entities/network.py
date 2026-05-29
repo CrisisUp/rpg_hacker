@@ -3,16 +3,16 @@ class NetworkNode:
         self.ip = ip
         self.node_type = node_type
         self.is_hacked = False
-        self.is_root = False # Novo: Define se o hacker tem privilégios administrativos
+        self.is_root = False
+        self.is_sniffing = False # Novo: Define se há um grampo ativo
         self.connections = []
         self.data_files = []
 
     def connect(self, other_node):
-        """Cria um link de rede bidirecional sem duplicatas."""
         if other_node not in self.connections:
             self.connections.append(other_node)
             other_node.connections.append(self)
 
     def __repr__(self):
-        status = "ROOT" if self.is_root else "USER" if self.is_hacked else "LOCKED"
+        status = "MITM" if self.is_sniffing else "ROOT" if self.is_root else "USER" if self.is_hacked else "LOCKED"
         return f"<Node {self.ip} [{status}]>"

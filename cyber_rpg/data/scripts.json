@@ -34,5 +34,23 @@
     "trace_impact": 0,
     "price": 400,
     "description": "Engana um usuário para obter acesso total. Requer lábia."
+  },
+  {
+    "id": "mitm",
+    "name": "MITM_Sniffer.py",
+    "ram_cost": 4,
+    "damage": 0,
+    "trace_impact": 10,
+    "price": 600,
+    "description": "Instala um grampo no nó para capturar dados passivamente a cada turno."
+  },
+  {
+    "id": "zeroday",
+    "name": "ZeroDay_Exploit.exe",
+    "ram_cost": 0,
+    "damage": 999,
+    "trace_impact": 0,
+    "price": 10000,
+    "description": "O Santo Graal. Destrói qualquer defesa instantaneamente sem deixar rastros."
   }
 ]

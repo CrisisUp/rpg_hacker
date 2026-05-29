@@ -3,6 +3,7 @@ import sys
 import time
 import random
 from entities.player import Player
+from entities.network import NetworkNode
 from systems.generator import generate_network
 from systems.combat import start_hack, run_privesc
 from ui import console as ui_console
@@ -17,11 +18,12 @@ class GameLoop:
         self.player = None
         self.current_node = None
         self.network_root = None
+        self.all_network_nodes = []
         self.mission_manager = None
 
     def start(self):
         ui_console.console.clear()
-        ui_console.header("INICIALIZANDO TERMINAL DE INVASÃO")
+        ui_console.header("INICIALIZANDO TERMINAL DE INVASÃO", "SISTEMA OPERACIONAL OPERACIONAL")
         if StateManager.save_exists():
             choice = ui_console.ask("Save detectado. Carregar? (S/N): ").upper()
             if choice == 'S':
@@ -31,21 +33,31 @@ class GameLoop:
             else: self._new_game()
         else: self._new_game()
         self.mission_manager = MissionManager()
-        self.network_root = generate_network(12)
+        self.network_root = generate_network(15) # Rede maior para o ZeroDay
+        self._collect_all_nodes(self.network_root)
         self.current_node = self.network_root
         self.current_node.is_hacked = True 
-        self.current_node.is_root = True # Gateway começa com ROOT
+        self.current_node.is_root = True 
         self.run_main_loop()
 
+    def _collect_all_nodes(self, root):
+        stack, visited = [root], set()
+        while stack:
+            node = stack.pop()
+            if node not in visited:
+                visited.add(node); self.all_network_nodes.append(node)
+                stack.extend(node.connections)
+
     def _new_game(self):
-        handle = ui_console.ask("Digite seu Handle: ")
+        handle = ui_console.ask("Handle: ")
         self.player = Player(handle)
         all_s = get_all_scripts()
-        if all_s: self.player.scripts = [s for s in all_s if s.id in ['brute_force', 'proxy_hop', 'phishing']]
+        if all_s: self.player.scripts = [s for s in all_s if s.id in ['brute_force', 'proxy_hop', 'mitm', 'phishing']]
 
     def run_main_loop(self):
         while self.is_running:
             self._display_interface()
+            self._process_passive_mitm()
             self._check_mission_status()
             if not self.is_running: break
             self._display_node_status()
@@ -54,82 +66,80 @@ class GameLoop:
 
     def _display_interface(self):
         ui_console.console.clear()
-        ui_console.header("SISTEMA DE INVASÃO", "CONEXÃO REMOTA ATIVA")
+        ui_console.header("SISTEMA DE INVASÃO", "AGENTE GHOST ONLINE")
         ui_console.display_status_table(self.player)
         ui_console.console.print(f"\n[bold yellow][MISSÃO]: {self.mission_manager.current_title}[/bold yellow]")
         ui_console.trace_bar(self.player.trace_level)
         print("-" * 60)
 
     def _display_node_status(self):
-        priv_status = "ROOT" if self.current_node.is_root else "USER"
-        print(f"\n[SISTEMA ATUAL]: {self.current_node.ip} ({self.current_node.node_type}) - ACESSO: {priv_status}")
-        
+        p_status = "ROOT" if self.current_node.is_root else "USER"
+        print(f"\n[NO ATUAL]: {self.current_node.ip} ({self.current_node.node_type}) - {p_status}")
         if self.current_node.data_files:
             if self.current_node.is_root:
-                ui_console.info(f"Arquivos (ROOT): {', '.join(self.current_node.data_files)}")
+                ui_console.info(f"Arquivos: {', '.join(self.current_node.data_files)}")
                 print(" [D] Baixar arquivos")
-            else:
-                ui_console.warning("Arquivos detectados, mas exigem acesso ROOT.")
-                print(" [P] Escalar Privilégios (PrivEsc)")
-
+            else: print(" [P] Escalar Privilégios (PrivEsc)")
         print("\nConexões detectadas:")
         for i, n in enumerate(self.current_node.connections):
             status = "[ROOT]" if n.is_root else "[USER]" if n.is_hacked else "[LOCKED]"
             ui_console.console.print(f" [{i}] -> {n.ip} ({n.node_type}) {status}")
-        print("\n [Q] Desconectar | [...] Ajuda")
+        print("\n [Q] Sair | [...] Ajuda")
 
     def _handle_player_action(self, choice):
-        if choice == 'Q':
-            StateManager.save_game(self.player.to_dict())
-            self.is_running = False
+        if choice == 'Q': StateManager.save_game(self.player.to_dict()); self.is_running = False
         elif choice == '...': ui_console.display_manual()
-        elif choice == '....':
-            auto_choice = AutoHacker.resolve_navigation(self.player, self.current_node, self.mission_manager)
-            self._handle_player_action(auto_choice)
-        elif choice == 'D' and self.current_node.data_files and self.current_node.is_root:
-            self._execute_data_download()
+        elif choice == '....': self._handle_player_action(AutoHacker.resolve_navigation(self.player, self.current_node, self.mission_manager))
+        elif choice == 'D' and self.current_node.data_files and self.current_node.is_root: self._execute_data_download()
         elif choice == 'P' and self.current_node.is_hacked and not self.current_node.is_root:
-            if run_privesc(self.player, self.current_node):
-                ui_console.wait_for_enter()
+            if run_privesc(self.player, self.current_node): ui_console.wait_for_enter()
         else: self._process_navigation(choice)
 
     def _process_navigation(self, choice):
         try:
-            idx = int(choice)
-            target = self.current_node.connections[idx]
+            target = self.current_node.connections[int(choice)]
             if not target.is_hacked:
-                if start_hack(self.player, target):
-                    self.current_node = target
-                    self.player.restore_system_resources()
-            else:
-                self.current_node = target
-                self.player.restore_system_resources()
+                if start_hack(self.player, target): self.current_node = target; self.player.restore_system_resources()
+            else: self.current_node = target; self.player.restore_system_resources()
         except: pass
 
     def _execute_data_download(self):
-        ui_console.system("\n[*] Interceptando pacotes...")
         for file in list(self.current_node.data_files):
-            time.sleep(0.5)
-            gain = random.randint(100, 300)
-            ui_console.success(f"Baixado: {file} (+${gain})")
-            self.player.receive_loot(file, gain)
+            if file == "ZeroDay_Exploit.zip":
+                self._unlock_zeroday()
+            else:
+                gain = random.randint(100, 300)
+                ui_console.success(f"Baixado: {file} (+${gain})")
+                self.player.receive_loot(file, gain)
             self.current_node.data_files.remove(file)
         ui_console.wait_for_enter()
 
+    def _unlock_zeroday(self):
+        ui_console.header("!!! ALERTA DE LOOT LENDÁRIO !!!", "ZERO-DAY EXPLOIT DETECTADO")
+        ui_console.warning("Descompactando payload altamente criptografado...")
+        time.sleep(2)
+        all_s = get_all_scripts()
+        zeroday = next((s for s in all_s if s.id == "zeroday"), None)
+        if zeroday:
+            self.player.add_script(zeroday)
+            ui_console.success("ZeroDay_Exploit.exe instalado no seu arsenal.")
+
+    def _process_passive_mitm(self):
+        sniffers = [n for n in self.all_network_nodes if n.is_sniffing]
+        for node in sniffers:
+            if random.random() < 0.20:
+                gain = random.randint(50, 150); self.player.add_credits(gain)
+                ui_console.success(f"MITM {node.ip}: +${gain}")
+            self.player.increase_trace(1)
+
     def _check_mission_status(self):
-        completed = self.mission_manager.check_objective(self.player.collected_data)
-        if completed:
+        m = self.mission_manager.check_objective(self.player.collected_data)
+        if m:
             ui_console.header("MISSÃO CONCLUÍDA", "OBJETIVO ALCANÇADO")
-            self.player.add_credits(completed['reward_credits'])
-            StateManager.save_game(self.player.to_dict())
+            self.player.add_credits(m['reward_credits'])
             if self.mission_manager.is_story_complete:
-                ui_console.success("\n[SISTEMA] OMNICORP DERRUBADA. VOCÊ VENCEU.")
-                self.is_running = False
+                ui_console.success("\nVITÓRIA FINAL. SISTEMA DERRUBADO."); self.is_running = False
             ui_console.wait_for_enter()
 
     def _trigger_game_over(self):
-        ui_console.console.clear()
-        ui_console.error("CONEXÃO PERDIDA - SEU DISCO FOI FORMATADO")
-        StateManager.delete_save()
-        self.is_running = False
-        sys.exit()
+        ui_console.console.clear(); ui_console.error("FORMATADO PELAS AUTORIDADES"); StateManager.delete_save(); self.is_running = False; sys.exit()
