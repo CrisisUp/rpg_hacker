@@ -23,6 +23,7 @@ class GameLoop:
         self.passive_manager = None
         self.lore_data = get_lore_data()
         self.all_emails = get_all_emails()
+        self.rival_stolen_files = {} # {ip: [files]}
         AuditLogger.log("SISTEMA", "GameLoop inicializado.")
 
     def start(self):
@@ -70,12 +71,35 @@ class GameLoop:
             self.passive_manager.process_all(self.all_network_nodes)
             self._check_mission_status()
             if not self.is_running: break
+            
+            self._process_rival_activity()
             self._check_for_hunter_attack()
             if self.player.connection_stability <= 0: self._trigger_game_over(); break
             
             self._display_node_status()
             choice = ui_console.ask("Ação: ").upper()
             self._handle_player_action(choice)
+
+    def _process_rival_activity(self):
+        """Simula a atividade do rival Zero_Cool na rede."""
+        # Se o rival já está em algum lugar, ele tem chance de sair se o jogador demorar
+        current_rival_node = next((n for n in self.all_network_nodes if n.rival_present), None)
+        
+        if not current_rival_node:
+            # Chance de 15% de o rival aparecer em um nó que contém arquivos de missão ou lore
+            if random.random() < 0.15:
+                target_nodes = [n for n in self.all_network_nodes if n.data_files and n != self.current_node and not n.is_hacked]
+                if target_nodes:
+                    node = random.choice(target_nodes)
+                    node.rival_present = True
+                    # Rouba um arquivo aleatório do nó
+                    stolen = node.data_files.pop(random.randint(0, len(node.data_files)-1))
+                    if node.ip not in self.rival_stolen_files: self.rival_stolen_files[node.ip] = []
+                    self.rival_stolen_files[node.ip].append(stolen)
+                    
+                    AuditLogger.log("RIVAL", f"Zero_Cool detectado em {node.ip}. Arquivo roubado: {stolen}")
+                    if any(conn == node for conn in self.current_node.connections):
+                        ui_console.warning(f"SINAL ESTRANHO DETECTADO EM NÓ VIZINHO ({node.ip}).")
 
     def _check_for_hunter_attack(self):
         """Chance de uma IA inimiga (Hunter) atacar o jogador baseado na Notoriedade."""
@@ -126,18 +150,22 @@ class GameLoop:
         if self.current_node.is_xss_active: flags.append("Infectado (XSS)")
         if self.current_node.is_under_ransomware: flags.append(f"RANSOMWARE ({self.current_node.ransomware_timer})")
         if self.current_node.has_active_backdoor: flags.append(f"BACKDOOR ({self.current_node.backdoor_timer})")
+        if self.current_node.rival_present: flags.append("HACKER RIVAL DETECTADO")
         status_line = f" [{', '.join(flags)}]" if flags else ""
         print(f"\n[NO ATUAL]: {self.current_node.ip} ({self.current_node.node_type}) - {p_status}{status_line}")
         
         if self.current_node.is_root and not self.current_node.is_sniffing: print(" [M] Instalar MITM Sniffer")
-        if self.current_node.data_files:
+        if self.current_node.data_files or self.current_node.ip in self.rival_stolen_files:
             if self.current_node.is_root:
-                ui_console.info(f"Arquivos: {', '.join(self.current_node.data_files)}")
+                files = self.current_node.data_files[:]
+                if self.current_node.ip in self.rival_stolen_files: files.append("[DADO CRIPTOGRAFADO PELO RIVAL]")
+                ui_console.info(f"Arquivos: {', '.join(files)}")
                 print(" [D] Baixar arquivos")
             else: print(" [P] Escalar Privilégios (PrivEsc)")
         print("\nConexões detectadas:")
         for i, n in enumerate(self.current_node.connections):
             status = "[ROOT]" if n.is_root else "[USER]" if n.is_hacked else "[LOCKED]"
+            if n.rival_present: status += " [!]"
             ui_console.console.print(f" [{i}] -> {n.ip} ({n.node_type}) {status}")
         print("\n [E] Inbox | [L] Logs | [B] Dark Web | [S] Contratos | [Q] Sair | [...] Ajuda")
 
@@ -152,7 +180,7 @@ class GameLoop:
         elif choice == '...': ui_console.display_manual()
         elif choice == '....': self._handle_player_action(AutoHacker.resolve_navigation(self.player, self.current_node, self.mission_manager))
         elif choice == 'M' and self.current_node.is_root and not self.current_node.is_sniffing: self._deploy_mitm()
-        elif choice == 'D' and self.current_node.data_files and self.current_node.is_root: self._execute_data_download()
+        elif choice == 'D' and (self.current_node.data_files or self.current_node.ip in self.rival_stolen_files) and self.current_node.is_root: self._execute_data_download()
         elif choice == 'P' and self.current_node.is_hacked and not self.current_node.is_root:
             if run_privesc(self.player, self.current_node): ui_console.wait_for_enter()
         else: self._process_navigation(choice)
@@ -208,10 +236,29 @@ class GameLoop:
     def _process_navigation(self, choice):
         try:
             target = self.current_node.connections[int(choice)]
+            was_rival_present = target.rival_present
+            
             if not target.is_hacked:
-                if start_hack(self.player, target): self.current_node = target; self.player.restore_system_resources()
-            else: self.current_node = target; self.player.restore_system_resources()
+                if start_hack(self.player, target):
+                    self.current_node = target; self.player.restore_system_resources()
+                    if was_rival_present: self._recover_stolen_files(target)
+            else:
+                self.current_node = target; self.player.restore_system_resources()
+                if was_rival_present: self._recover_stolen_files(target)
         except: pass
+
+    def _recover_stolen_files(self, node):
+        """Recupera arquivos roubados pelo rival após derrotá-lo."""
+        if node.ip in self.rival_stolen_files:
+            files = self.rival_stolen_files.pop(node.ip)
+            for f in files:
+                ui_console.success(f"DADO RECUPERADO DE ZERO_COOL: {f}")
+                # Se for arquivo importante, devolve ao nó para o jogador baixar normalmente
+                if f in self.lore_data or "fragment" in f or "ZeroDay" in f or "access_logs" in f or "lista_contatos" in f or "contas_offshore" in f or "token_acesso" in f or "project_alpha" in f:
+                    node.data_files.append(f)
+                else:
+                    self.player.receive_loot(f, random.randint(200, 500))
+            ui_console.wait_for_enter()
 
     def _execute_data_download(self):
         for file in list(self.current_node.data_files):

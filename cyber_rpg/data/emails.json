@@ -70,5 +70,21 @@
     "from": "CEO OmniCorp",
     "subject": "PROPOSTA DE ACORDO",
     "body": "Ghost, você é caro demais para continuarmos lutando. Entregue o Architect e apague os fragmentos do Alpha. Oferecemos anistia total e um cargo de CSO no andar de cima. Pense bem."
+  },
+  {
+    "id": "email_rival_01",
+    "trigger_type": "notoriety",
+    "threshold": 2,
+    "from": "Zero_Cool",
+    "subject": "LENTO DEMAIS",
+    "body": "Ouvi dizer que o Ghost é a nova sensação. Mas pela sua demora no Gateway, acho que os boatos exageraram. Estou de olho nos mesmos arquivos que você. Tente acompanhar."
+  },
+  {
+    "id": "email_rival_02",
+    "trigger_type": "notoriety",
+    "threshold": 5,
+    "from": "Zero_Cool",
+    "subject": "VALEU PELOS DADOS",
+    "body": "Sabe aquele servidor de e-mail que você estava namorando? Cheguei primeiro. Se quiser os dados de volta, vai ter que me encontrar na rede. Boa caçada."
   }
 ]

@@ -11,19 +11,31 @@ from core.logger import AuditLogger
 
 def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
     CombatUI.display_header(target_server.ip)
+    
+    if target_server.rival_present:
+        console.error("!!! INTERCEPTAÇÃO: HACKER RIVAL ZERO_COOL DETECTADO !!!")
+        console.warning("Ele está tentando bloquear seu acesso e roubar seus pacotes.")
+        AuditLogger.log("COMBATE", f"Confronto direto com Zero_Cool em {target_server.ip}")
+        time.sleep(1.5)
+
     AuditLogger.log("COMBATE", f"Iniciando tentativa de invasão em {target_server.ip} ({target_server.node_type})")
     
     # Cálculo de dificuldade dinâmica baseado no Nível de Alerta Corporativo e Notoriedade
     base_health = 40 if "Firewall" in target_server.node_type else 25
     alert_bonus = hacker.alert_level * 5 # Cada ponto de alerta adiciona 5 HP
     notoriety_bonus = hacker.notoriety * 2 # Cada ponto de notoriedade adiciona 2 HP permanente
-    server_health = base_health + alert_bonus + notoriety_bonus
     
-    if hacker.alert_level > 0 or hacker.notoriety > 0:
+    # Bônus do Rival
+    rival_bonus = 30 if target_server.rival_present else 0
+    
+    server_health = base_health + alert_bonus + notoriety_bonus + rival_bonus
+    
+    if hacker.alert_level > 0 or hacker.notoriety > 0 or target_server.rival_present:
         msg = f"DEFESAS ATIVAS!"
         if hacker.alert_level > 0: msg += f" Nível de alerta {hacker.alert_level}."
         if hacker.notoriety > 0: msg += f" Notoriedade detectada: {hacker.notoriety}."
-        console.warning(f"{msg} (+{alert_bonus + notoriety_bonus} HP)")
+        if target_server.rival_present: msg += " [RIVAL PRESENTE]"
+        console.warning(f"{msg} (+{alert_bonus + notoriety_bonus + rival_bonus} HP)")
     
     while server_health > 0 and hacker.connection_stability > 0:
         CombatUI.display_status(hacker, server_health)
@@ -53,6 +65,10 @@ def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
 
     success = _finalize_hack_session(target_server, server_health)
     if success:
+        if target_server.rival_present:
+            console.success("Zero_Cool desconectado! Você recuperou os dados roubados.")
+            target_server.rival_present = False
+            AuditLogger.log("COMBATE", f"Zero_Cool derrotado em {target_server.ip}")
         AuditLogger.log("COMBATE", f"Sucesso na invasão de {target_server.ip}.")
     else:
         AuditLogger.log("COMBATE", f"Falha na invasão de {target_server.ip} (Conexão Perdida/Trace).")

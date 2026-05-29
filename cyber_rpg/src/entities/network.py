@@ -7,9 +7,10 @@ class NetworkNode:
         self.is_sniffing = False
         self.is_xss_active = False
         self.is_corrupted = False
-        self.is_supply_chain_infected = False # Novo: Indica se o fornecedor foi comprometido
+        self.is_supply_chain_infected = False # Indica se o fornecedor foi comprometido
+        self.rival_present = False # Novo: Indica se o hacker rival está neste nó
         self.ransomware_timer = 0
-        self.backdoor_timer = 0 # Novo: Contador para ativação do backdoor
+        self.backdoor_timer = 0 # Contador para ativação do backdoor
         self.connections = []
         self.data_files = []
 
@@ -28,6 +29,7 @@ class NetworkNode:
 
     def __repr__(self):
         if self.is_corrupted: return f"<Node {self.ip} [DEAD]>"
+        if self.rival_present: return f"<Node {self.ip} [RIVAL DETECTED]>"
         if self.is_supply_chain_infected: return f"<Node {self.ip} [INFECTED SUPPLIER]>"
         if self.is_under_ransomware: return f"<Node {self.ip} [RANSOMWARE: {self.ransomware_timer}]>"
         if self.has_active_backdoor: return f"<Node {self.ip} [BACKDOOR: {self.backdoor_timer}]>"
