@@ -4,7 +4,8 @@ class NetworkNode:
         self.node_type = node_type
         self.is_hacked = False
         self.is_root = False
-        self.is_sniffing = False # Novo: Define se há um grampo ativo
+        self.is_sniffing = False
+        self.is_xss_active = False # Novo: Define se o servidor web está distribuindo payloads XSS
         self.connections = []
         self.data_files = []
 
@@ -14,5 +15,5 @@ class NetworkNode:
             other_node.connections.append(self)
 
     def __repr__(self):
-        status = "MITM" if self.is_sniffing else "ROOT" if self.is_root else "USER" if self.is_hacked else "LOCKED"
+        status = "XSS" if self.is_xss_active else "MITM" if self.is_sniffing else "ROOT" if self.is_root else "USER" if self.is_hacked else "LOCKED"
         return f"<Node {self.ip} [{status}]>"
