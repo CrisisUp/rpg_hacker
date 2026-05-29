@@ -1,38 +1,74 @@
 [
   {
+    "id": "email_m1",
     "mission_id": "mission_01",
+    "trigger_type": "mission_active",
     "from": "The Architect",
     "subject": "BEM-VINDO AO JOGO",
     "body": "Ghost, o seu alvo é a OmniCorp. Comece pelo Gateway. É a porta de entrada mais frágil. Pegue os logs e saia. Não tente ser herói ainda."
   },
   {
+    "id": "email_m2",
     "mission_id": "mission_02",
+    "trigger_type": "mission_active",
     "from": "The Architect",
     "subject": "DICA: LÁBIA É TUDO",
     "body": "Bom trabalho nos logs. Agora, use o script de Phishing. Procure por funcionários com privilégios baixos no chat. Eles são o elo mais fraco da corrente."
   },
   {
+    "id": "email_m3",
     "mission_id": "mission_03",
+    "trigger_type": "mission_active",
     "from": "The Architect",
     "subject": "HORA DE COBRAR",
     "body": "A OmniCorp não vai pagar por livre e espontânea vontade. Use o Ransomware no servidor financeiro. Quando eles sentirem o prejuízo, vão abrir o cofre."
   },
   {
+    "id": "email_m4",
     "mission_id": "mission_04",
+    "trigger_type": "mission_active",
     "from": "The Architect",
     "subject": "INFILTRAÇÃO INDIRETA",
     "body": "O servidor central está em lockdown. Mas eles confiam cegamente no fornecedor de software. Infecte o fornecedor e o resto será história."
   },
   {
+    "id": "email_m5",
     "mission_id": "mission_05",
+    "trigger_type": "mission_active",
     "from": "The Architect",
     "subject": "ARMAMENTO PESADO",
     "body": "Estamos quase lá. Mas as defesas do Mainframe são impenetráveis para scripts comuns. Você precisa compilar um Zero-Day. Vasculhe os Vaults."
   },
   {
+    "id": "email_m6",
     "mission_id": "mission_06",
+    "trigger_type": "mission_active",
     "from": "The Architect",
     "subject": "O GOLPE DE MISERICÓRDIA",
     "body": "Este é o fim da linha. Use o Zero-Day, destrua o firewall do Mainframe e traga o Projeto Alpha. Estaremos te esperando do outro lado."
+  },
+  {
+    "id": "email_notoriety_03",
+    "trigger_type": "notoriety",
+    "threshold": 3,
+    "from": "Equipe de Segurança OmniCorp",
+    "subject": "AVISO DE INTRUSÃO",
+    "body": "Ghost (ou seja lá quem você for), detectamos padrões anômalos em nossa rede. Nossas IAs Hunters já foram enviadas. Desconecte enquanto ainda tem um sistema para chamar de seu."
+  },
+  {
+    "id": "email_notoriety_07",
+    "trigger_type": "notoriety",
+    "threshold": 7,
+    "from": "Anonymous_Mask",
+    "subject": "CONVITE: LEGION",
+    "body": "Vimos o que você fez com a OmniCorp. Impressionante. Se sobreviver ao Projeto Alpha, talvez tenhamos uma vaga para você na Legion. Mantenha o rastro limpo."
+  },
+  {
+    "id": "email_notoriety_12",
+    "trigger_type": "notoriety",
+    "threshold": 12,
+    "from": "CEO OmniCorp",
+    "subject": "PROPOSTA DE ACORDO",
+    "body": "Ghost, você é caro demais para continuarmos lutando. Entregue o Architect e apague os fragmentos do Alpha. Oferecemos anistia total e um cargo de CSO no andar de cima. Pense bem."
   }
 ]

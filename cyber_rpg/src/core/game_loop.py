@@ -96,7 +96,10 @@ class GameLoop:
         ui_console.header("SISTEMA DE INVASÃO", "AGENTE GHOST ONLINE")
         ui_console.display_status_table(self.player)
         
-        unread_count = len([e for e in self.all_emails if e['mission_id'] == self.mission_manager.active_mission['id'] and e['mission_id'] not in self.player.read_emails]) if self.mission_manager.active_mission else 0
+        # Filtra e-mails que o jogador "recebeu" (gatilhos atendidos)
+        received_emails = [e for e in self.all_emails if self._is_email_triggered(e)]
+        unread_count = len([e for e in received_emails if e['id'] not in self.player.read_emails])
+        
         if unread_count > 0:
             ui_console.warning(f"VOCÊ TEM {unread_count} E-MAIL(S) NÃO LIDO(S)! [Comando E]")
             
@@ -106,6 +109,15 @@ class GameLoop:
         ui_console.console.print(f"\n[bold yellow][MISSÃO]: {self.mission_manager.current_title}[/bold yellow]")
         ui_console.trace_bar(self.player.trace_level)
         print("-" * 60)
+
+    def _is_email_triggered(self, email: dict) -> bool:
+        """Verifica se as condições para receber este e-mail foram atendidas."""
+        trigger = email.get('trigger_type')
+        if trigger == 'mission_active':
+            return self.mission_manager.active_mission and self.mission_manager.active_mission['id'] == email.get('mission_id')
+        elif trigger == 'notoriety':
+            return self.player.notoriety >= email.get('threshold', 0)
+        return False
 
     def _display_node_status(self):
         p_status = "ROOT" if self.current_node.is_root else "USER"
@@ -169,20 +181,20 @@ class GameLoop:
 
     def _display_inbox(self):
         ui_console.console.clear()
-        ui_console.header("INBOX - MENSAGENS CRIPTOGRAFADAS", "THE ARCHITECT")
+        ui_console.header("INBOX - MENSAGENS CRIPTOGRAFADAS", "GHOST_MAIL_v2.1")
         
-        current_mission_id = self.mission_manager.active_mission['id'] if self.mission_manager.active_mission else None
-        if not current_mission_id:
+        received_emails = [e for e in self.all_emails if self._is_email_triggered(e)]
+        if not received_emails:
             ui_console.system("Nenhuma mensagem nova."); ui_console.wait_for_enter(); return
 
-        mission_emails = [e for e in self.all_emails if e['mission_id'] == current_mission_id]
-        
-        for e in mission_emails:
-            ui_console.console.print(f"\n[bold cyan]DE:[/] {e['from']}")
+        for e in reversed(received_emails): # Mais recentes primeiro
+            status = "[bold green][NOVA][/]" if e['id'] not in self.player.read_emails else "[dim][LIDA][/]"
+            ui_console.console.print(f"\n{status} [bold cyan]DE:[/] {e['from']}")
             ui_console.console.print(f"[bold cyan]ASSUNTO:[/] {e['subject']}")
             ui_console.console.print(f"\n{e['body']}")
-            if e['mission_id'] not in self.player.read_emails:
-                self.player.read_emails.append(e['mission_id'])
+            
+            if e['id'] not in self.player.read_emails:
+                self.player.read_emails.append(e['id'])
             print("-" * 40)
             
         ui_console.wait_for_enter()
