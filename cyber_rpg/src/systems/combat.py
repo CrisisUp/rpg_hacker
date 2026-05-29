@@ -70,6 +70,12 @@ def _process_script_menu(hacker, target_node) -> int:
 
 def _execute_script_logic(hacker, idx: int, target_node) -> int:
     s = hacker.scripts[idx]
+    
+    if s.id == "zeroday":
+        console.header("ZERO-DAY EXPLOIT ATIVADO", "EXECUTANDO VULNERABILIDADE DESCONHECIDA")
+        hacker.remove_script("zeroday")
+        return 999
+
     if not hacker.use_ram(s.ram_cost): console.error("RAM insuficiente!"); return 0
     
     if s.id == "phishing": return _run_social_engineering_game(hacker)

@@ -2,7 +2,7 @@ import random
 from entities.network import NetworkNode
 
 def generate_network(nodes_count=15):
-    """Gera a rede incluindo nós de fornecedores externos e alvos OmniCorp."""
+    """Gera a rede incluindo nós de fornecedores externos, alvos OmniCorp e fragmentos de Zero-Day."""
     types_pool = ["Web Server", "Email Server", "File Server", "Proxy", "DNS Server"]
     secure_types = ["Firewall", "Database", "Mainframe", "Encrypted Vault"]
     external_types = ["Software Supplier", "IT Partner"]
@@ -28,19 +28,24 @@ def generate_network(nodes_count=15):
             
         new_node = NetworkNode(ip, ntype)
         
-        if ntype == "Encrypted Vault" and random.random() < 0.02:
-            new_node.data_files.append("ZeroDay_Exploit.zip")
-        elif mission_files and random.random() > 0.6:
+        # Distribuição de Fragmentos de Zero-Day e Exploits
+        if ntype == "Encrypted Vault":
+            if random.random() < 0.10: # 10% de chance de Zero-Day completo em Vaults
+                new_node.data_files.append("ZeroDay_Exploit.zip")
+            else:
+                new_node.data_files.append(f"vulnerability_fragment_{random.randint(100,999)}.bin")
+        elif ntype in secure_types and random.random() < 0.40: # 40% em outros nós seguros
+            new_node.data_files.append(f"vulnerability_fragment_{random.randint(100,999)}.bin")
+        
+        if mission_files and random.random() > 0.6:
             new_node.data_files.append(mission_files.pop(0))
         elif random.random() > 0.4:
             new_node.data_files.append(random.choice(common_files))
             
-        # Conecta o novo nó a um nó existente
         target_node = random.choice(all_nodes)
         new_node.connect(target_node)
         all_nodes.append(new_node)
         
-    # Conectar fornecedores a alvos adicionais para garantir que o ataque tenha impacto
     suppliers = [n for n in all_nodes if "Supplier" in n.node_type]
     omnicorp_nodes = [n for n in all_nodes if "Supplier" not in n.node_type and n != gateway]
     

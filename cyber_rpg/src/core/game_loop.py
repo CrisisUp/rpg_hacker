@@ -86,11 +86,10 @@ class GameLoop:
                 node.ransomware_timer -= 1
                 if node.ransomware_timer <= 0: node.is_corrupted = True; node.data_files = []; ui_console.error(f"\n[CRÍTICO] Servidor {node.ip} perdido para Ransomware.")
 
-        # 4. Processar Supply Chain Backdoor (Novo)
+        # 4. Processar Supply Chain Backdoor
         for node in [n for n in self.all_network_nodes if n.has_active_backdoor]:
             node.backdoor_timer -= 1
             if node.backdoor_timer <= 0:
-                # Ao expirar, um nó da OmniCorp conectado é hackeado automaticamente
                 omnicorp_targets = [n for n in node.connections if not n.is_hacked and "Supplier" not in n.node_type]
                 if omnicorp_targets:
                     target = random.choice(omnicorp_targets)
@@ -103,6 +102,8 @@ class GameLoop:
         ui_console.console.clear()
         ui_console.header("SISTEMA DE INVASÃO", "AGENTE GHOST ONLINE")
         ui_console.display_status_table(self.player)
+        if self.player.vulnerability_fragments > 0:
+            ui_console.system(f"FRAGMENTOS DE ZERO-DAY: {self.player.vulnerability_fragments}/5")
         ui_console.console.print(f"\n[bold yellow][MISSÃO]: {self.mission_manager.current_title}[/bold yellow]")
         ui_console.trace_bar(self.player.trace_level)
         print("-" * 60)
@@ -156,6 +157,12 @@ class GameLoop:
     def _execute_data_download(self):
         for file in list(self.current_node.data_files):
             if file == "ZeroDay_Exploit.zip": self._unlock_zeroday()
+            elif "vulnerability_fragment" in file:
+                self.player.vulnerability_fragments += 1
+                ui_console.success(f"Fragmento de vulnerabilidade coletado! ({self.player.vulnerability_fragments}/5)")
+                if self.player.vulnerability_fragments >= 5:
+                    self.player.vulnerability_fragments = 0
+                    self._unlock_zeroday()
             else:
                 gain = random.randint(100, 300); ui_console.success(f"Baixado: {file} (+${gain})")
                 self.player.receive_loot(file, gain)
@@ -163,9 +170,11 @@ class GameLoop:
         ui_console.wait_for_enter()
 
     def _unlock_zeroday(self):
-        ui_console.header("LOOT LENDÁRIO", "ZERO-DAY")
+        ui_console.header("ZERO-DAY COMPILADO", "VULNERABILIDADE ÚNICA")
         zeroday = next((s for s in get_all_scripts() if s.id == "zeroday"), None)
-        if zeroday: self.player.add_script(zeroday); ui_console.success("Instalado.")
+        if zeroday: 
+            self.player.add_script(zeroday)
+            ui_console.success("Exploit Zero-Day pronto para uso único.")
 
     def _check_mission_status(self):
         m = self.mission_manager.check_objective(self.player.collected_data)
