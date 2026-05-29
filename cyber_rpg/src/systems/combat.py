@@ -30,12 +30,18 @@ def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
             if action == "1": server_health -= _process_manual_attack(hacker, auto=True)
             elif action == "2": server_health -= _execute_script_logic(hacker, int(sub_action), target_server)
             elif action == "3": _perform_system_reboot(hacker)
+            # Contra-medidas após ação automática
+            server_health = _trigger_counter_measures(hacker, server_health, target_server)
             continue
 
         if player_choice == "1": server_health -= _process_manual_attack(hacker)
         elif player_choice == "2": server_health -= _process_script_menu(hacker, target_server)
         elif player_choice == "3": _perform_system_reboot(hacker)
         elif player_choice == "...": console.display_manual()
+
+        # Contra-medidas após ação do jogador
+        if server_health > 0:
+            server_health = _trigger_counter_measures(hacker, server_health, target_server)
 
         if hacker.trace_level >= 100:
             _handle_trace_overload(hacker)
@@ -47,6 +53,36 @@ def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
     else:
         AuditLogger.log("COMBATE", f"Falha na invasão de {target_server.ip} (Conexão Perdida/Trace).")
     return success
+
+def _trigger_counter_measures(hacker: Player, server_health: int, target_server: NetworkNode) -> int:
+    """Chance do servidor reagir com contra-medidas (ICE)."""
+    # Chance base de 20% + (Trace / 5)% + (Alerta * 10)%
+    chance = 20 + (hacker.trace_level // 5) + (hacker.alert_level * 10)
+    
+    if random.randint(1, 100) <= chance:
+        action = random.choice(["REGEN", "TRACE", "STABILITY"])
+        
+        if action == "REGEN":
+            regen = random.randint(5, 10)
+            server_health += regen
+            console.warning(f"ICE DETECTADO: Rotação de criptografia! (+{regen} HP para o servidor)")
+            AuditLogger.log("ICE", f"Servidor {target_server.ip} recuperou {regen} HP.")
+            
+        elif action == "TRACE":
+            extra_trace = random.randint(10, 20)
+            hacker.increase_trace(extra_trace)
+            console.error(f"ICE DETECTADO: Rastreio Ativo! (+{extra_trace}% Trace)")
+            AuditLogger.log("ICE", f"Servidor {target_server.ip} forçou rastreio (+{extra_trace}%).")
+            
+        elif action == "STABILITY":
+            dmg = random.randint(10, 20)
+            hacker.take_damage(dmg)
+            console.error(f"ICE DETECTADO: Sobrecarga de pacotes! (-{dmg}% Estabilidade de Conexão)")
+            AuditLogger.log("ICE", f"Servidor {target_server.ip} atacou estabilidade (-{dmg}%).")
+            
+        time.sleep(1)
+    
+    return server_health
 
 def run_privesc(hacker: Player, target_server: NetworkNode) -> bool:
     if target_server.is_corrupted:
