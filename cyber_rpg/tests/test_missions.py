@@ -15,17 +15,23 @@ class TestMissions(unittest.TestCase):
         self.assertIsNotNone(self.manager.active_mission)
         self.assertEqual(self.manager.current_title, "Fase 1: Infiltração Inicial")
 
-    def test_mission_completion(self):
-        """Verifica se a coleta do arquivo correto completa a missão."""
+    def test_mission_branching(self):
+        """Verifica se a coleta do arquivo correto abre ramificações."""
         target_file = self.manager.active_mission['required_file']
         
-        # Simula o jogador coletando o arquivo
+        # Coleta o arquivo da missão 1
         completed = self.manager.check_objective([target_file])
         
         self.assertIsNotNone(completed)
-        self.assertEqual(completed['required_file'], target_file)
-        # Deve ter avançado para a próxima
-        self.assertNotEqual(self.manager.current_title, "Fase 1: Infiltração Inicial")
+        self.assertTrue(self.manager.pending_choice, "Deveria estar pendente de escolha!")
+        
+        choices = self.manager.get_available_choices()
+        self.assertEqual(len(choices), 2)
+        
+        # Simula escolha da missão silenciosa
+        self.manager.select_mission("mission_02_silent")
+        self.assertFalse(self.manager.pending_choice)
+        self.assertEqual(self.manager.active_mission['id'], "mission_02_silent")
 
 if __name__ == "__main__":
     unittest.main()

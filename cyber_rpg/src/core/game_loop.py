@@ -186,8 +186,31 @@ class GameLoop:
         if m:
             ui_console.header("MISSÃO CONCLUÍDA", "OBJETIVO ALCANÇADO")
             self.player.add_credits(m['reward_credits'])
-            if self.mission_manager.is_story_complete: ui_console.success("\nVOCÊ VENCEU."); self.is_running = False
+            if self.mission_manager.pending_choice:
+                self._handle_mission_branching()
+            elif self.mission_manager.is_story_complete: 
+                ui_console.success("\nVOCÊ VENCEU."); self.is_running = False
             ui_console.wait_for_enter()
+
+    def _handle_mission_branching(self):
+        ui_console.header("MÚLTIPLOS CONTRATOS DETECTADOS", "ESCOLHA SEU PRÓXIMO ALVO")
+        choices = self.mission_manager.get_available_choices()
+        for i, c in enumerate(choices):
+            ui_console.console.print(f" [{i}] [bold cyan]{c['title']}[/]")
+            ui_console.console.print(f"     {c['description']}\n")
+        
+        sel = ui_console.ask("Selecione o contrato: ")
+        try:
+            chosen = choices[int(sel)]
+            self.mission_manager.select_mission(chosen['id'])
+            ui_console.success(f"Contrato aceito: {chosen['title']}")
+            # Efeitos da escolha
+            if "loud" in chosen['id']:
+                self.player.increase_trace(30)
+                ui_console.warning("Ação barulhenta! TI em alerta máximo (+30% Trace).")
+        except:
+            self.mission_manager.select_mission(choices[0]['id']) # Fallback
+            ui_console.warning("Contrato padrão selecionado devido a erro de entrada.")
 
     def _trigger_game_over(self):
         ui_console.console.clear(); ui_console.error("CONEXÃO PERDIDA / RASTREIO COMPLETO"); StateManager.delete_save(); self.is_running = False; sys.exit()
