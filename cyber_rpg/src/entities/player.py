@@ -6,7 +6,7 @@ class Player:
         self.handle = handle
         self.max_ram = GameConfig.INITIAL_RAM_GB
         self.current_ram = GameConfig.INITIAL_RAM_GB
-        self.connection_stability = GameConfig.INITIAL_STABILITY
+        self.connection_stability = GameConfig.INITIAL_CONNECTION_STABILITY
         self.trace_level = 0
         self.level = 1
         self.exp = 0

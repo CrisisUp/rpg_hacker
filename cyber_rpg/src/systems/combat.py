@@ -91,7 +91,7 @@ def _execute_script_logic(hacker, idx: int, target_node) -> int:
     if s.id == "supplychain":
         if "Supplier" in target_node.node_type or "Partner" in target_node.node_type:
             console.success("Backdoor plantado na atualização de software do fornecedor.")
-            target_node.backdoor_timer = 4
+            target_node.is_supply_chain_infected = True; target_node.backdoor_timer = 4
             return 100 # Derruba o servidor do fornecedor para plantar o código
         console.error("Este script só funciona em alvos externos (Supplier/Partner)!"); return 0
 

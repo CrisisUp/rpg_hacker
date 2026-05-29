@@ -1,11 +1,11 @@
 import random
 from entities.network import NetworkNode
 
-def generate_network(nodes_count=12):
-    """Gera a rede incluindo nós de fornecedores externos."""
+def generate_network(nodes_count=15):
+    """Gera a rede incluindo nós de fornecedores externos e alvos OmniCorp."""
     types_pool = ["Web Server", "Email Server", "File Server", "Proxy", "DNS Server"]
     secure_types = ["Firewall", "Database", "Mainframe", "Encrypted Vault"]
-    external_types = ["Supplier Server", "Partner Gateway"]
+    external_types = ["Software Supplier", "IT Partner"]
 
     gateway = NetworkNode("192.168.0.1", "Gateway Público")
     all_nodes = [gateway]
@@ -16,8 +16,10 @@ def generate_network(nodes_count=12):
     for i in range(1, nodes_count):
         ip = f"10.0.1.{i+1}"
         
-        # Chance de ser um fornecedor externo
-        if random.random() < 0.15:
+        # Garantir pelo menos um Software Supplier
+        if i == 1:
+            ntype = "Software Supplier"
+        elif random.random() < 0.15:
             ntype = random.choice(external_types)
         elif i > nodes_count * 0.7:
             ntype = random.choice(secure_types)
@@ -33,8 +35,19 @@ def generate_network(nodes_count=12):
         elif random.random() > 0.4:
             new_node.data_files.append(random.choice(common_files))
             
+        # Conecta o novo nó a um nó existente
         target_node = random.choice(all_nodes)
         new_node.connect(target_node)
         all_nodes.append(new_node)
+        
+    # Conectar fornecedores a alvos adicionais para garantir que o ataque tenha impacto
+    suppliers = [n for n in all_nodes if "Supplier" in n.node_type]
+    omnicorp_nodes = [n for n in all_nodes if "Supplier" not in n.node_type and n != gateway]
+    
+    for s in suppliers:
+        if omnicorp_nodes:
+            targets = random.sample(omnicorp_nodes, min(2, len(omnicorp_nodes)))
+            for t in targets:
+                s.connect(t)
 
     return gateway
