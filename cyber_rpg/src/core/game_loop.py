@@ -9,6 +9,7 @@ from systems.missions import MissionManager
 from systems.auto_hacker import AutoHacker
 from systems.passive_effects import PassiveEffectManager
 from core.state import StateManager
+from core.logger import AuditLogger
 
 class GameLoop:
     def __init__(self):
@@ -21,6 +22,7 @@ class GameLoop:
         self.passive_manager = None
         self.lore_data = get_lore_data()
         self.all_emails = get_all_emails()
+        AuditLogger.log("SISTEMA", "GameLoop inicializado.")
 
     def start(self):
         ui_console.console.clear()
@@ -31,6 +33,7 @@ class GameLoop:
                 save_data = StateManager.load_game()
                 self.player = Player(save_data['handle'])
                 self.player.from_dict(save_data, get_all_scripts())
+                AuditLogger.log("SISTEMA", f"Sessão restaurada para hacker: {self.player.handle}")
             else: self._new_game()
         else: self._new_game()
         
@@ -40,6 +43,7 @@ class GameLoop:
         self._collect_all_nodes(self.network_root)
         self.current_node = self.network_root
         self.current_node.is_hacked = True; self.current_node.is_root = True 
+        AuditLogger.log("REDE", "Topologia de rede gerada e conexão estabelecida.")
         self.run_main_loop()
 
     def _collect_all_nodes(self, root):
@@ -56,6 +60,8 @@ class GameLoop:
         all_s = get_all_scripts()
         if all_s: 
             self.player.scripts = [s for s in all_s if s.id in ['brute_force', 'proxy_hop', 'mitm', 'phishing', 'xss', 'decrypter', 'supplychain', 'ransomware']]
+        AuditLogger.clear_logs()
+        AuditLogger.log("SISTEMA", f"Nova sessão iniciada por: {handle}")
 
     def run_main_loop(self):
         while self.is_running:
@@ -103,11 +109,14 @@ class GameLoop:
         for i, n in enumerate(self.current_node.connections):
             status = "[ROOT]" if n.is_root else "[USER]" if n.is_hacked else "[LOCKED]"
             ui_console.console.print(f" [{i}] -> {n.ip} ({n.node_type}) {status}")
-        print("\n [E] Inbox | [Q] Sair | [...] Ajuda")
+        print("\n [E] Inbox | [L] Logs | [Q] Sair | [...] Ajuda")
 
     def _handle_player_action(self, choice):
-        if choice == 'Q': StateManager.save_game(self.player.to_dict()); self.is_running = False
+        if choice == 'Q': 
+            AuditLogger.log("SISTEMA", "Sessão encerrada pelo usuário.")
+            StateManager.save_game(self.player.to_dict()); self.is_running = False
         elif choice == 'E': self._display_inbox()
+        elif choice == 'L': AuditLogger.display_logs()
         elif choice == '...': ui_console.display_manual()
         elif choice == '....': self._handle_player_action(AutoHacker.resolve_navigation(self.player, self.current_node, self.mission_manager))
         elif choice == 'M' and self.current_node.is_root and not self.current_node.is_sniffing: self._deploy_mitm()
@@ -115,6 +124,7 @@ class GameLoop:
         elif choice == 'P' and self.current_node.is_hacked and not self.current_node.is_root:
             if run_privesc(self.player, self.current_node): ui_console.wait_for_enter()
         else: self._process_navigation(choice)
+
 
     def _display_inbox(self):
         ui_console.console.clear()

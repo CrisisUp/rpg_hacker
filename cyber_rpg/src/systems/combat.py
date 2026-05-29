@@ -7,9 +7,11 @@ from entities.network import NetworkNode
 from entities.script import HackingScript
 from systems.auto_hacker import AutoHacker
 from systems.script_effects import get_effect
+from core.logger import AuditLogger
 
 def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
     CombatUI.display_header(target_server.ip)
+    AuditLogger.log("COMBATE", f"Iniciando tentativa de invasão em {target_server.ip} ({target_server.node_type})")
     
     # Cálculo de dificuldade dinâmica baseado no Nível de Alerta Corporativo
     base_health = 40 if "Firewall" in target_server.node_type else 25
@@ -39,7 +41,12 @@ def start_hack(hacker: Player, target_server: NetworkNode) -> bool:
             _handle_trace_overload(hacker)
             break
 
-    return _finalize_hack_session(target_server, server_health)
+    success = _finalize_hack_session(target_server, server_health)
+    if success:
+        AuditLogger.log("COMBATE", f"Sucesso na invasão de {target_server.ip}.")
+    else:
+        AuditLogger.log("COMBATE", f"Falha na invasão de {target_server.ip} (Conexão Perdida/Trace).")
+    return success
 
 def run_privesc(hacker: Player, target_server: NetworkNode) -> bool:
     if target_server.is_corrupted:
@@ -53,8 +60,13 @@ def run_privesc(hacker: Player, target_server: NetworkNode) -> bool:
     
     choice = CombatUI.display_privesc_challenge(addresses)
     if choice == str(vuln_idx):
-        console.success("Acesso ROOT garantido."); target_server.is_root = True; return True
-    hacker.increase_trace(25); return False
+        console.success("Acesso ROOT garantido."); target_server.is_root = True
+        AuditLogger.log("PRIVILEGE_ESC", f"Privilégios ROOT obtidos em {target_server.ip}")
+        return True
+    
+    hacker.increase_trace(25)
+    AuditLogger.log("PRIVILEGE_ESC", f"Falha ao escalar privilégios em {target_server.ip}. Trace aumentado.")
+    return False
 
 def _process_manual_attack(hacker, auto=False) -> int:
     cmd = random.choice(["bypass --auth", "inject --payload", "flood --packets"])
@@ -77,14 +89,17 @@ def _execute_script_logic(hacker, idx: int, target_node) -> int:
             console.error("RAM insuficiente!")
             return 0
         effect = get_effect(script.id)
+        AuditLogger.log("SCRIPT", f"Executando {script.name} em {target_node.ip}")
         return effect.execute(hacker, target_node, script)
     except:
         return 0
 
 def _perform_system_reboot(hacker: Player):
+    AuditLogger.log("SISTEMA", "Reinicialização de sistema executada.")
     hacker.restore_system_resources(); hacker.increase_trace(20); console.success("RAM restaurada.")
 
 def _handle_trace_overload(hacker: Player):
+    AuditLogger.log("ALERTA", "Nível de rastreio crítico atingido (100%)!")
     console.error("RASTREIO COMPLETO!"); hacker.take_damage(100)
 
 def _finalize_hack_session(target_server, server_health) -> bool:
