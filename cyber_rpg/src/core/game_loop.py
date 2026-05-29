@@ -20,7 +20,7 @@ class GameLoop:
 
     def start(self):
         ui_console.console.clear()
-        ui_console.header("INICIALIZANDO TERMINAL DE INVASÃO", "SISTEMA OPERACIONAL OPERACIONAL")
+        ui_console.header("INICIALIZANDO TERMINAL DE INVASÃO", "AGENTE GHOST OPERACIONAL")
         if StateManager.save_exists():
             choice = ui_console.ask("Save detectado. Carregar? (S/N): ").upper()
             if choice == 'S':
@@ -49,7 +49,7 @@ class GameLoop:
         self.player = Player(handle)
         all_s = get_all_scripts()
         if all_s: 
-            self.player.scripts = [s for s in all_s if s.id in ['brute_force', 'proxy_hop', 'mitm', 'phishing', 'xss', 'decrypter']]
+            self.player.scripts = [s for s in all_s if s.id in ['brute_force', 'proxy_hop', 'mitm', 'phishing', 'xss', 'decrypter', 'supplychain']]
 
     def run_main_loop(self):
         while self.is_running:
@@ -63,37 +63,41 @@ class GameLoop:
 
     def _process_passive_actions(self):
         # 1. Processar MITM
-        sniffers = [n for n in self.all_network_nodes if n.is_sniffing]
-        for node in sniffers:
+        for node in [n for n in self.all_network_nodes if n.is_sniffing]:
             if random.random() < 0.20:
                 gain = random.randint(50, 150); self.player.add_credits(gain)
                 ui_console.success(f"MITM {node.ip}: +${gain}")
             self.player.increase_trace(1)
 
         # 2. Processar XSS
-        infected_sites = [n for n in self.all_network_nodes if n.is_xss_active]
-        for node in infected_sites:
+        for node in [n for n in self.all_network_nodes if n.is_xss_active]:
             if random.random() < 0.15:
                 new_ip = f"172.16.0.{random.randint(100, 254)}"
-                workstation = NetworkNode(new_ip, "Employee Workstation")
-                workstation.data_files = ["personal_secrets.txt", "browser_cookies.db"]
-                node.connect(workstation); self.all_network_nodes.append(workstation)
-                ui_console.warning(f"\n[XSS] Nova workstation detectada: {workstation.ip}")
+                ws = NetworkNode(new_ip, "Employee Workstation")
+                ws.data_files = ["personal_secrets.txt"]; node.connect(ws); self.all_network_nodes.append(ws)
+                ui_console.warning(f"\n[XSS] Workstation detectada: {ws.ip}")
 
-        # 3. Processar Ransomware (Evento Aleatório)
-        if random.random() < 0.05: # 5% de chance de infectar um nó aleatório
+        # 3. Processar Ransomware
+        if random.random() < 0.05:
             target = random.choice([n for n in self.all_network_nodes if n.is_hacked and not n.is_under_ransomware and not n.is_corrupted])
-            if target:
-                target.ransomware_timer = 5
-                ui_console.error(f"\n[ALERTA] RANSOMWARE DETECTADO NO NÓ {target.ip}! Arquivos em perigo.")
-
-        # Ticar timers de Ransomware
+            if target: target.ransomware_timer = 5; ui_console.error(f"\n[ALERTA] RANSOMWARE EM {target.ip}!")
         for node in self.all_network_nodes:
             if node.is_under_ransomware:
                 node.ransomware_timer -= 1
-                if node.ransomware_timer <= 0:
-                    node.is_corrupted = True; node.data_files = []
-                    ui_console.error(f"\n[CRÍTICO] Ransomware concluiu a criptografia em {node.ip}. Dados perdidos.")
+                if node.ransomware_timer <= 0: node.is_corrupted = True; node.data_files = []; ui_console.error(f"\n[CRÍTICO] Servidor {node.ip} perdido para Ransomware.")
+
+        # 4. Processar Supply Chain Backdoor (Novo)
+        for node in [n for n in self.all_network_nodes if n.has_active_backdoor]:
+            node.backdoor_timer -= 1
+            if node.backdoor_timer <= 0:
+                # Ao expirar, um nó da OmniCorp conectado é hackeado automaticamente
+                omnicorp_targets = [n for n in node.connections if not n.is_hacked and "Supplier" not in n.node_type]
+                if omnicorp_targets:
+                    target = random.choice(omnicorp_targets)
+                    target.is_hacked = True; target.is_root = True
+                    ui_console.success(f"\n[SUPPLY CHAIN] Backdoor ativado! OmniCorp {target.ip} agora sob nosso controle (ROOT).")
+                else:
+                    ui_console.system(f"\n[SUPPLY CHAIN] Backdoor em {node.ip} expirou sem alvos válidos.")
 
     def _display_interface(self):
         ui_console.console.clear()
@@ -109,11 +113,11 @@ class GameLoop:
         if self.current_node.is_sniffing: flags.append("Grampeado")
         if self.current_node.is_xss_active: flags.append("Infectado (XSS)")
         if self.current_node.is_under_ransomware: flags.append(f"RANSOMWARE ({self.current_node.ransomware_timer})")
+        if self.current_node.has_active_backdoor: flags.append(f"BACKDOOR ({self.current_node.backdoor_timer})")
         status_line = f" [{', '.join(flags)}]" if flags else ""
         print(f"\n[NO ATUAL]: {self.current_node.ip} ({self.current_node.node_type}) - {p_status}{status_line}")
         
-        if self.current_node.is_root and not self.current_node.is_sniffing:
-            print(" [M] Instalar MITM Sniffer")
+        if self.current_node.is_root and not self.current_node.is_sniffing: print(" [M] Instalar MITM Sniffer")
         if self.current_node.data_files:
             if self.current_node.is_root:
                 ui_console.info(f"Arquivos: {', '.join(self.current_node.data_files)}")
@@ -134,6 +138,12 @@ class GameLoop:
         elif choice == 'P' and self.current_node.is_hacked and not self.current_node.is_root:
             if run_privesc(self.player, self.current_node): ui_console.wait_for_enter()
         else: self._process_navigation(choice)
+
+    def _deploy_mitm(self):
+        mitm_s = next((s for s in self.player.scripts if s.id == "mitm"), None)
+        if self.player.use_ram(mitm_s.ram_cost):
+            self.current_node.is_sniffing = True; self.player.increase_trace(mitm_s.trace_impact)
+            ui_console.success("Sniffer instalado."); ui_console.wait_for_enter()
 
     def _process_navigation(self, choice):
         try:

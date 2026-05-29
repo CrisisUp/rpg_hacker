@@ -72,6 +72,15 @@
     "description": "Desativa processos de Ransomware e descriptografa arquivos em nós infectados."
   },
   {
+    "id": "supplychain",
+    "name": "SupplyChain_Backdoor.py",
+    "ram_cost": 6,
+    "damage": 0,
+    "trace_impact": 10,
+    "price": 750,
+    "description": "Infecta um Fornecedor Externo para ganhar acesso automático a servidores da OmniCorp após alguns turnos."
+  },
+  {
     "id": "zeroday",
     "name": "ZeroDay_Exploit.exe",
     "ram_cost": 0,

@@ -54,7 +54,7 @@ def _display_combat_status(hacker, server_health):
 
 def _process_manual_attack(hacker, auto=False) -> int:
     cmd = random.choice(["bypass --auth", "inject --payload", "flood --packets"])
-    console.info(f" >>> DIGITE: {cmd}")
+    console.info(f" >>> DIGITE RÁPIDO: {cmd}")
     u_input = cmd if auto else console.ask("> ")
     if u_input == cmd:
         dmg = random.randint(5, 10); hacker.increase_trace(2); console.success(f"Dano: {dmg}"); return dmg
@@ -85,12 +85,15 @@ def _execute_script_logic(hacker, idx: int, target_node) -> int:
 
     if s.id == "decrypter":
         if target_node.is_under_ransomware:
-            console.success("Ransomware neutralizado! Arquivos recuperados.")
-            target_node.ransomware_timer = 0
-            return 0 # Neutralizador, não dá dano
-        else:
-            console.error("Este servidor não está infectado por Ransomware.")
-            return 0
+            console.success("Ransomware neutralizado!"); target_node.ransomware_timer = 0; return 0
+        console.error("Servidor não infectado."); return 0
+
+    if s.id == "supplychain":
+        if "Supplier" in target_node.node_type or "Partner" in target_node.node_type:
+            console.success("Backdoor plantado na atualização de software do fornecedor.")
+            target_node.backdoor_timer = 4
+            return 100 # Derruba o servidor do fornecedor para plantar o código
+        console.error("Este script só funciona em alvos externos (Supplier/Partner)!"); return 0
 
     console.system(f"[*] Executando: {s.name}")
     hacker.increase_trace(s.trace_impact)
