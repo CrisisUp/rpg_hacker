@@ -11,6 +11,7 @@ from entities.network import NetworkNode
 from core.game_loop import GameLoop
 from systems.combat import _execute_script_logic
 from entities.script import HackingScript
+from systems.passive_effects import PassiveEffectManager
 
 class TestRansomware(unittest.TestCase):
     def setUp(self):
@@ -43,6 +44,7 @@ class TestRansomware(unittest.TestCase):
     def test_ransom_payment_in_loop(self):
         loop = GameLoop()
         loop.player = self.player
+        loop.passive_manager = PassiveEffectManager(self.player)
         node = NetworkNode("2.2.2.2", "Mainframe")
         node.ransomware_timer = 1
         loop.all_network_nodes = [node]
@@ -50,7 +52,7 @@ class TestRansomware(unittest.TestCase):
         initial_credits = self.player.credits
         initial_trace = self.player.trace_level
         
-        loop._process_passive_actions()
+        loop.passive_manager.process_all(loop.all_network_nodes)
         
         self.assertEqual(node.ransomware_timer, 0)
         self.assertTrue(node.is_corrupted)

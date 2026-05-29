@@ -7,6 +7,7 @@ from ui import console as ui_console
 from systems.loader import get_all_scripts
 from systems.missions import MissionManager
 from systems.auto_hacker import AutoHacker
+from systems.passive_effects import PassiveEffectManager
 from core.state import StateManager
 
 class GameLoop:
@@ -17,6 +18,7 @@ class GameLoop:
         self.network_root = None
         self.all_network_nodes = []
         self.mission_manager = None
+        self.passive_manager = None
 
     def start(self):
         ui_console.console.clear()
@@ -29,7 +31,9 @@ class GameLoop:
                 self.player.from_dict(save_data, get_all_scripts())
             else: self._new_game()
         else: self._new_game()
+        
         self.mission_manager = MissionManager()
+        self.passive_manager = PassiveEffectManager(self.player)
         self.network_root = generate_network(15)
         self._collect_all_nodes(self.network_root)
         self.current_node = self.network_root
@@ -49,62 +53,17 @@ class GameLoop:
         self.player = Player(handle)
         all_s = get_all_scripts()
         if all_s: 
-            # Adicionado 'ransomware' aos scripts iniciais para teste
             self.player.scripts = [s for s in all_s if s.id in ['brute_force', 'proxy_hop', 'mitm', 'phishing', 'xss', 'decrypter', 'supplychain', 'ransomware']]
 
     def run_main_loop(self):
         while self.is_running:
             self._display_interface()
-            self._process_passive_actions()
+            self.passive_manager.process_all(self.all_network_nodes)
             self._check_mission_status()
             if not self.is_running: break
             self._display_node_status()
             choice = ui_console.ask("Ação: ").upper()
             self._handle_player_action(choice)
-
-    def _process_passive_actions(self):
-        # 1. Processar MITM
-        for node in [n for n in self.all_network_nodes if n.is_sniffing]:
-            if random.random() < 0.20:
-                gain = random.randint(50, 150); self.player.add_credits(gain)
-                ui_console.success(f"MITM {node.ip}: +${gain}")
-            self.player.increase_trace(1)
-
-        # 2. Processar XSS
-        for node in [n for n in self.all_network_nodes if n.is_xss_active]:
-            if random.random() < 0.15:
-                new_ip = f"172.16.0.{random.randint(100, 254)}"
-                ws = NetworkNode(new_ip, "Employee Workstation")
-                ws.data_files = ["personal_secrets.txt"]; node.connect(ws); self.all_network_nodes.append(ws)
-                ui_console.warning(f"\n[XSS] Workstation detectada: {ws.ip}")
-
-        # 3. Processar Ransomware (Agressivo)
-        for node in self.all_network_nodes:
-            if node.is_under_ransomware:
-                node.ransomware_timer -= 1
-                # Aumento drástico de rastreio enquanto o ransomware está ativo
-                self.player.increase_trace(10)
-                ui_console.warning(f"[RANSOMWARE] Criptografando {node.ip}... TI em alerta! (+10% Trace)")
-                
-                if node.ransomware_timer <= 0:
-                    node.is_corrupted = True
-                    node.data_files = []
-                    resgate = random.randint(2000, 5000)
-                    self.player.add_credits(resgate)
-                    ui_console.header("RESGATE RECEBIDO", f"+${resgate}")
-                    ui_console.success(f"O servidor {node.ip} foi totalmente criptografado. Pagamento processado via Monero.")
-
-        # 4. Processar Supply Chain Backdoor
-        for node in [n for n in self.all_network_nodes if n.has_active_backdoor]:
-            node.backdoor_timer -= 1
-            if node.backdoor_timer <= 0:
-                omnicorp_targets = [n for n in node.connections if not n.is_hacked and "Supplier" not in n.node_type]
-                if omnicorp_targets:
-                    target = random.choice(omnicorp_targets)
-                    target.is_hacked = True; target.is_root = True
-                    ui_console.success(f"\n[SUPPLY CHAIN] Backdoor ativado! OmniCorp {target.ip} agora sob nosso controle (ROOT).")
-                else:
-                    ui_console.system(f"\n[SUPPLY CHAIN] Backdoor em {node.ip} expirou sem alvos válidos.")
 
     def _display_interface(self):
         ui_console.console.clear()
