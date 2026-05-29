@@ -5,6 +5,7 @@ from systems.generator import generate_network
 from systems.combat import start_hack, run_privesc
 from ui import console as ui_console
 from ui.market import BlackMarket
+from ui.menu_controller import MenuController
 from systems.loader import get_all_scripts, get_lore_data, get_all_emails
 from systems.missions import MissionManager
 from systems.auto_hacker import AutoHacker
@@ -76,7 +77,7 @@ class GameLoop:
             self._check_for_hunter_attack()
             if self.player.connection_stability <= 0: self._trigger_game_over(); break
             
-            self._display_node_status()
+            MenuController.display_node_status(self.current_node, self.rival_stolen_files)
             choice = ui_console.ask("Ação: ").upper()
             self._handle_player_action(choice)
 
@@ -116,23 +117,9 @@ class GameLoop:
             ui_console.wait_for_enter()
 
     def _display_interface(self):
-        ui_console.console.clear()
-        ui_console.header("SISTEMA DE INVASÃO", "AGENTE GHOST ONLINE")
-        ui_console.display_status_table(self.player)
-        
-        # Filtra e-mails que o jogador "recebeu" (gatilhos atendidos)
         received_emails = [e for e in self.all_emails if self._is_email_triggered(e)]
         unread_count = len([e for e in received_emails if e['id'] not in self.player.read_emails])
-        
-        if unread_count > 0:
-            ui_console.warning(f"VOCÊ TEM {unread_count} E-MAIL(S) NÃO LIDO(S)! [Comando E]")
-            
-        if self.player.vulnerability_fragments > 0:
-            ui_console.system(f"FRAGMENTOS DE ZERO-DAY: {self.player.vulnerability_fragments}/5")
-            
-        ui_console.console.print(f"\n[bold yellow][MISSÃO]: {self.mission_manager.current_title}[/bold yellow]")
-        ui_console.trace_bar(self.player.trace_level)
-        print("-" * 60)
+        MenuController.display_interface(self.player, self.mission_manager, unread_count)
 
     def _is_email_triggered(self, email: dict) -> bool:
         """Verifica se as condições para receber este e-mail foram atendidas."""
@@ -143,41 +130,17 @@ class GameLoop:
             return self.player.notoriety >= email.get('threshold', 0)
         return False
 
-    def _display_node_status(self):
-        p_status = "ROOT" if self.current_node.is_root else "USER"
-        flags = []
-        if self.current_node.is_sniffing: flags.append("Grampeado")
-        if self.current_node.is_xss_active: flags.append("Infectado (XSS)")
-        if self.current_node.is_under_ransomware: flags.append(f"RANSOMWARE ({self.current_node.ransomware_timer})")
-        if self.current_node.has_active_backdoor: flags.append(f"BACKDOOR ({self.current_node.backdoor_timer})")
-        if self.current_node.rival_present: flags.append("HACKER RIVAL DETECTADO")
-        status_line = f" [{', '.join(flags)}]" if flags else ""
-        print(f"\n[NO ATUAL]: {self.current_node.ip} ({self.current_node.node_type}) - {p_status}{status_line}")
-        
-        if self.current_node.is_root and not self.current_node.is_sniffing: print(" [M] Instalar MITM Sniffer")
-        if self.current_node.data_files or self.current_node.ip in self.rival_stolen_files:
-            if self.current_node.is_root:
-                files = self.current_node.data_files[:]
-                if self.current_node.ip in self.rival_stolen_files: files.append("[DADO CRIPTOGRAFADO PELO RIVAL]")
-                ui_console.info(f"Arquivos: {', '.join(files)}")
-                print(" [D] Baixar arquivos")
-            else: print(" [P] Escalar Privilégios (PrivEsc)")
-        print("\nConexões detectadas:")
-        for i, n in enumerate(self.current_node.connections):
-            status = "[ROOT]" if n.is_root else "[USER]" if n.is_hacked else "[LOCKED]"
-            if n.rival_present: status += " [!]"
-            ui_console.console.print(f" [{i}] -> {n.ip} ({n.node_type}) {status}")
-        print("\n [E] Inbox | [L] Logs | [B] Dark Web | [S] Contratos | [Q] Sair | [...] Ajuda")
-
     def _handle_player_action(self, choice):
         if choice == 'Q': 
             AuditLogger.log("SISTEMA", "Sessão encerrada pelo usuário.")
             StateManager.save_game(self.player.to_dict()); self.is_running = False
-        elif choice == 'E': self._display_inbox()
+        elif choice == 'E': 
+            received_emails = [e for e in self.all_emails if self._is_email_triggered(e)]
+            MenuController.display_inbox(received_emails, self.player)
         elif choice == 'L': AuditLogger.display_logs()
-        elif choice == 'B': BlackMarket.display_market(self.player)
-        elif choice == 'S': self._display_side_missions()
-        elif choice == '...': ui_console.display_manual()
+        elif choice == 'B': MenuController.open_black_market(self.player)
+        elif choice == 'S': MenuController.display_side_missions(self.mission_manager, AuditLogger)
+        elif choice == '...': MenuController.display_manual()
         elif choice == '....': self._handle_player_action(AutoHacker.resolve_navigation(self.player, self.current_node, self.mission_manager))
         elif choice == 'M' and self.current_node.is_root and not self.current_node.is_sniffing: self._deploy_mitm()
         elif choice == 'D' and (self.current_node.data_files or self.current_node.ip in self.rival_stolen_files) and self.current_node.is_root: self._execute_data_download()
