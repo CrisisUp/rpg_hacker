@@ -1,0 +1,18 @@
+class GameConfig:
+    """Configurações globais de balanceamento do RPG."""
+    INITIAL_RAM_GB = 16
+    INITIAL_CONNECTION_STABILITY = 100
+    TRACE_THRESHOLD_LIMIT = 100
+    HACKING_COMMAND_TIMEOUT_SECONDS = 7
+    RAM_RECOVERY_ON_HOP = 16
+    REBOOT_TRACE_PENALTY_PERCENT = 20
+    EXP_GIVEN_PER_FILE_DOWNLOAD = 50
+    CREDITS_REWARD_MIN = 100
+    CREDITS_REWARD_MAX = 300
+
+class ServerStats:
+    """Atributos base para os servidores da rede."""
+    FIREWALL_HEALTH_POINTS = 40
+    COMMON_SERVER_HEALTH_POINTS = 25
+    MIN_ATTACK_DAMAGE = 5
+    MAX_ATTACK_DAMAGE = 10

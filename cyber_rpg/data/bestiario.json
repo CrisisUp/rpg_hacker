@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Firewall",
+    "hp": 20,
+    "defense": 5,
+    "description": "Uma barreira básica de segurança."
+  },
+  {
+    "name": "IDS",
+    "hp": 15,
+    "defense": 2,
+    "description": "Sistema de detecção de intrusão que aumenta o rastreio rapidamente."
+  }
+]

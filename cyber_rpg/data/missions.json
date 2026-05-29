@@ -1,0 +1,26 @@
+[
+  {
+    "id": "mission_01",
+    "title": "O Despertar do Hacker",
+    "description": "Infiltre-se na rede e obtenha os 'access_logs.txt'.",
+    "required_file": "access_logs.txt",
+    "reward_credits": 500,
+    "next_mission": "mission_02"
+  },
+  {
+    "id": "mission_02",
+    "title": "A Rota do Dinheiro",
+    "description": "Localize o servidor financeiro e baixe o 'payroll.xlsx'.",
+    "required_file": "payroll.xlsx",
+    "reward_credits": 1500,
+    "next_mission": "mission_03"
+  },
+  {
+    "id": "mission_03",
+    "title": "O Golpe Final",
+    "description": "Encontre o projeto secreto 'project_alpha.pdf'.",
+    "required_file": "project_alpha.pdf",
+    "reward_credits": 5000,
+    "next_mission": null
+  }
+]

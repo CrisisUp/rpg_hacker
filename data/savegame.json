@@ -1,0 +1,15 @@
+{
+    "handle": "Cris",
+    "level": 1,
+    "exp": 100,
+    "credits": 2532,
+    "script_ids": [
+        "brute_force",
+        "proxy_hop",
+        "phishing"
+    ],
+    "collected_data": [
+        "access_logs.txt",
+        "payroll.xlsx"
+    ]
+}

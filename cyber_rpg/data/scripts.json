@@ -1,0 +1,38 @@
+[
+  {
+    "id": "brute_force",
+    "name": "BruteForce.py",
+    "ram_cost": 4,
+    "damage": 10,
+    "trace_impact": 15,
+    "price": 0,
+    "description": "Tenta todas as combinações de senha. Barulhento e eficaz."
+  },
+  {
+    "id": "sql_inject",
+    "name": "SQL_Injector.sh",
+    "ram_cost": 6,
+    "damage": 25,
+    "trace_impact": 5,
+    "price": 500,
+    "description": "Injeta comandos no banco de dados. Silencioso e destrutivo."
+  },
+  {
+    "id": "proxy_hop",
+    "name": "ProxyHop.v3",
+    "ram_cost": 2,
+    "damage": 0,
+    "trace_impact": -20,
+    "price": 200,
+    "description": "Limpa seus rastros pulando entre proxies internacionais."
+  },
+  {
+    "id": "phishing",
+    "name": "Spear_Phishing.vbs",
+    "ram_cost": 4,
+    "damage": 100,
+    "trace_impact": 0,
+    "price": 400,
+    "description": "Engana um usuário para obter acesso total. Requer lábia."
+  }
+]
